@@ -23,7 +23,7 @@ function processImage() {
                 canvas.width = newWidth;
                 canvas.height = newHeight;
             } else if (document.getElementById('sizeSettings').value === 'pixelGoal') {
-                let newRes = resizeDimensionsWithTotalPixelGoal(img.width, img.height, pixelGoal);
+                let newRes = resizePixelGoal(img.width, img.height, pixelGoal);
                 canvas.width = newRes[0];
                 canvas.height = newRes[1];
             } else {
@@ -143,7 +143,7 @@ function convertImgStringToCanvas(imgString) {
         canvas.width = newWidth;
         canvas.height = newHeight;
     } else if (document.getElementById('sizeSettings').value === 'pixelGoal') {
-        let newRes = resizeDimensionsWithTotalPixelGoal(width, height, pixelGoal);
+        let newRes = resizePixelGoal(width, height, pixelGoal);
         canvas.width = newRes[0];
         canvas.height = newRes[1];
     } else {
@@ -244,10 +244,12 @@ document.getElementById('Filters').addEventListener('change', function() {
     var grayscaleDiv = document.getElementById('grayscale');
     var customDiv = document.getElementById('customFilter');
     var noiseDiv = document.getElementById('NoiseFilter');
+    var blurDiv = document.getElementById('blurFilter')
     noneDiv.style.display = 'none';
     grayscaleDiv.style.display = 'none';
     customDiv.style.display = 'none';
     noiseDiv.style.display = 'none';
+    blurDiv.style.display = 'none';
     if (selectedValue === 'none') { 
         noneDiv.style.display = 'block';
     } else if (selectedValue === 'GrayScale') {
@@ -256,10 +258,19 @@ document.getElementById('Filters').addEventListener('change', function() {
         customDiv.style.display = 'block';
     } else if (selectedValue === 'noise') {
         noiseDiv.style.display = 'block';
+    } else if (selectedValue === 'blur') {
+        blurDiv.style.display = 'block';
     }
     fliterOption = selectedValue;
 });
-function resizeDimensionsWithTotalPixelGoal(width, height, totalPixelGoal) {
+document.getElementById('sizeSettings').addEventListener('change', function() {
+    var selectedOption = this.value;
+        document.getElementById('scaleOptions').style.display = 'none';
+        document.getElementById('pixelGoalOptions').style.display = 'none';
+        document.getElementById('widthHeightOptions').style.display = 'none';
+        document.getElementById(selectedOption + 'Options').style.display = 'block';
+    }); 
+function resizePixelGoal(width, height, totalPixelGoal) {
     var currentPixels = width * height;
     var aspectRatio = width / height;
     var newWidth = Math.sqrt(totalPixelGoal * aspectRatio);
@@ -533,6 +544,9 @@ function applyFliter(context,w,h,filterType) {
     } else if (filterType == 'noise') {
         const noiseLevel = document.getElementById('noiseLevel').value;
         noiseFilter(context,w,h,noiseLevel)
+    } else if (filterType == 'blur') {
+        const blurPower = Math.min(Math.abs(document.getElementById('blurPower').value),27);
+        blurImage(context,w,h, blurPower)
     }
 }
 function noiseFilter(context, w, h, noise) {
@@ -580,6 +594,48 @@ function grayScale(context, w, h) {
     }
     context.putImageData(imgData, 0, 0);
 }
+function blurImage(context, w, h, blurPower) {
+    const imgData = context.getImageData(0, 0, w, h);
+    const data = imgData.data;
+    const radius = Math.floor(blurPower / 2);
+    const side = radius * 2 + 1;
+    const kernel = [];
+    for (let y = -radius; y <= radius; y++) {
+        for (let x = -radius; x <= radius; x++) {
+            kernel.push(1 / (side * side));
+        }
+    }
+    const newData = new Uint8ClampedArray(data.length);
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            let r = 0,g = 0,b = 0,a = 0;
+            for (let ky = -radius; ky <= radius; ky++) {
+                for (let kx = -radius; kx <= radius; kx++) {
+                    const pixelY = y + ky;
+                    const pixelX = x + kx;
+                    if (pixelY >= 0 && pixelY < h && pixelX >= 0 && pixelX < w) {
+                        const index = (pixelY * w + pixelX) * 4;
+                        const weight = kernel[(ky + radius) * side + kx + radius];
+                        r += data[index] * weight;
+                        g += data[index + 1] * weight;
+                        b += data[index + 2] * weight;
+                        a += data[index + 3] * weight;
+                    }
+                }
+            }
+            const dataIndex = (y * w + x) * 4;
+            newData[dataIndex] = r;
+            newData[dataIndex + 1] = g;
+            newData[dataIndex + 2] = b;
+            newData[dataIndex + 3] = a;
+        }
+    }
+    for (let i = 0; i < newData.length; i++) {
+        data[i] = newData[i];
+    }
+    context.putImageData(imgData, 0, 0);
+}
+
 function findClosest(oldpixel, palArr) {
     var minDist = Infinity;
     var idx = 0;
