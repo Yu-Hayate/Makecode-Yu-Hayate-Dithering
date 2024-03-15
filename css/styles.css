@@ -1,0 +1,105 @@
+body {
+    background-color: #333; /* Dark background color */
+    color: rgb(49, 49, 49); /* Text color */
+    padding: 20px;
+}
+.version {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: #292929;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+    font-size: 24px;
+    color: #ebebeb
+}
+.image-container {
+    display: flex;
+    align-items: flex-start;
+    background-color: rgba(255, 255, 255, 0.1); /* Lighter background for image container */
+    padding: 20px;
+    border-radius: 10px; /* Rounded corners */
+}
+
+img {
+    display: block;
+    margin: 0;
+    width: 57%;
+    height: auto;
+    object-fit: cover; /* This ensures the image covers the entire container without distortion */
+    image-rendering: pixelated; /* Maintains the pixelated effect */
+}
+
+button {
+    margin: 5px;
+    padding: 8px 10px; /* Adjust padding for better button appearance */
+    border: none;
+    border-radius: 5px;
+    background-color: #535353; /* Green color */
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049; /* Darker green color on hover */
+}
+
+input[type="number"],
+select {
+    margin-bottom: 10px;
+}
+
+input[type="number"],
+select,
+input[type="text"] {
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #666;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ebebeb;
+}
+
+input[type="number"]:focus,
+select:focus,
+input[type="text"]:focus {
+    outline: none;
+    border-color: #b9b9b98c;
+}
+
+select {
+    margin-bottom: 10px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #666;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ebebeb;
+}
+
+select:focus {
+    outline: none;
+    border-color: #4242428c;
+}
+
+/* Adjust dropdown color */
+select option {
+    background-color: #444; /* Darker background color */
+    color: #ebebeb; /* Lighter text color */
+}
+
+label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+button.enabled {
+    background-color: green; /* Set enabled color */
+    color: white;
+}
+
+button.disabled {
+    background-color: red; /* Set disabled color */
+    color: white;
+}
