@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Manipulator</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="version">V1.01.4</div>
+
+    <div>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+    <div>
+        <label for="sizeSettings" style="color: white;">Size Settings:</label>
+        <select id="sizeSettings">
+            <option value="scale">Scale</option>
+            <option value="pixelGoal">Pixel Goal</option>
+            <option value="widthHeight">Width & Height</option>
+        </select>
+    </div>
+    <div id="scaleOptions">
+        <input type="number" value="1" id="scaleFactor" placeholder="Enter scale factor">
+    </div>
+    <div id="pixelGoalOptions" style="display: none;">
+        <input type="number" value="19200" id="maxPixels" placeholder="Enter a max pixel count">
+    </div>
+    <div id="widthHeightOptions" style="display: none;">
+        <input type="number" value="160" id="width" placeholder="Enter width">
+        <input type="number" value="120" id="height" placeholder="Enter height">
+    </div>
+    <div>
+        <label for="Filters" style="color: white">Filter Options</label>
+        <select id="Filters">
+            <option value="none">none</option>
+            <option value="GrayScale">Grayscale</option>
+            <option value="custom">Custom</option>
+            <option value="noise">noise</option>
+        </select>
+    </div>
+
+    <div id="none" style="display: none;">
+    </div>
+
+    <div id="grayscale" style="display: none;">
+    </div>
+
+    <div id="customFilter" style="display: none;">
+        <input type="number" value="" id="red" placeholder="Red" min="0" max="255">
+        <input type="number" value="" id="green" placeholder="Green" min="0" max="255">
+        <input type="number" value="" id="blue" placeholder="Blue" min="0" max="255">
+        <input type="color" id="colorPicker">
+        <button onclick="updateColors()">Set</button>
+    </div>
+    
+    
+    <div id="NoiseFilter" style="display: none;">
+        <input type="number" value="" id="noiseLevel" placeholder="Enter Noise level">
+    </div>
+    <div>
+        <label for="ditheringOptions" style="color: white;">Dithering Options:</label>
+        <select id="ditheringOptions">
+            <option value="floyd">floyd-Steinberg</option>
+            <option value="falseFloyd">False Floyd-Steinberg</option>
+            <option value="nearest">Nearest Color</option>
+            <option value="bayerMatrix4">4x4 bayer Matrix (wip)</option>
+            <option value="bayerMatrix8">8x8 bayer Matrix (wip)</option>
+            <option value="none">none</option>
+        </select>
+    </div>
+    <lable for="varName" style="color: white;">variable name:</lable>
+    <input type="text" id="varName" placeholder="Enter Name for sprite" value="NewImage">
+    <br>
+    <button onclick="processImage()">Convert and Resize</button>
+    <button onclick="copyToClipboard()">Copy Image String</button>
+    <button id="downloadButton">Download Image</button>
+    <div class="image-container">
+        <div class="color-input-container">
+            <input type="color" id="colorInput">
+            <button onclick="addColor()">Add Color</button>
+            <ul id="colorList"></ul>
+        </div>
+        <img id="outputImage" src="" alt="Output Image">
+    </div>
+    <input type="text" id="makeCodeInput" placeholder="Enter MakeCode image (WIP)">
+    <button onclick="convertAndDownload()">Convert and Download</button>
+
+    <div id="colorListSettings">
+        <label for="colorLists" style="color: white;">Color Lists:</label>
+        <select id="colorLists">
+            <option value="default">Default</option>
+            <!-- You can dynamically add options here using JavaScript -->
+        </select>
+        <button onclick="saveColorList()">Save</button>
+        <button onclick="loadColorList()">Load</button>
+        <button onclick="removeColorList()">remove</button>
+
+    </div>
+
+    <script src="../js/scripts.js"></script>
+    <script>
+        document.getElementById('sizeSettings').addEventListener('change', function() {
+        var selectedOption = this.value;
+            document.getElementById('scaleOptions').style.display = 'none';
+            document.getElementById('pixelGoalOptions').style.display = 'none';
+            document.getElementById('widthHeightOptions').style.display = 'none';
+            document.getElementById(selectedOption + 'Options').style.display = 'block';
+        });    
+    </script>
+</body>
+</html>
