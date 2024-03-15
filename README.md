@@ -1,1 +1,0 @@
-# Makecode-Yu-Hayate-Dithering
