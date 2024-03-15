@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="version">V1.01.7</div>
+    <div class="version">V1.01.4</div>
 
     <div>
         <input type="file" id="fileInput" accept="image/*">
@@ -37,6 +37,7 @@
             <option value="GrayScale">Grayscale</option>
             <option value="custom">Custom</option>
             <option value="noise">noise</option>
+            <option value="blur">blur</option>
         </select>
     </div>
 
@@ -57,6 +58,9 @@
     
     <div id="NoiseFilter" style="display: none;">
         <input type="number" value="" id="noiseLevel" placeholder="Enter Noise level">
+    </div>
+    <div id="blurFilter" style="display: none;">
+        <input type="number" value="" id="blurPower" placeholder="Enter blur power">
     </div>
     <div>
         <label for="ditheringOptions" style="color: white;">Dithering Options:</label>
@@ -83,7 +87,7 @@
         </div>
         <img id="outputImage" src="" alt="Output Image">
     </div>
-    <input type="text" id="makeCodeInput" placeholder="Enter MakeCode image">
+    <input type="text" id="makeCodeInput" placeholder="Enter MakeCode image (WIP)">
     <button onclick="convertAndDownload()">Convert and Download</button>
 
     <div id="colorListSettings">
@@ -100,13 +104,7 @@
 
     <script src="scripts.js"></script>
     <script>
-        document.getElementById('sizeSettings').addEventListener('change', function() {
-        var selectedOption = this.value;
-            document.getElementById('scaleOptions').style.display = 'none';
-            document.getElementById('pixelGoalOptions').style.display = 'none';
-            document.getElementById('widthHeightOptions').style.display = 'none';
-            document.getElementById(selectedOption + 'Options').style.display = 'block';
-        });    
+           
     </script>
 </body>
 </html>
