@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="version">V1.01.6</div>
+    <div class="version" id="version">V1.01.7</div>
 
     <div>
         <input type="file" id="fileInput" accept="image/*">
@@ -33,11 +33,12 @@
     <div>
         <label for="Filters" style="color: white">Filter Options</label>
         <select id="Filters">
-            <option value="none">none</option>
+            <option value="none">None</option>
             <option value="GrayScale">Grayscale</option>
             <option value="custom">Custom</option>
-            <option value="noise">noise</option>
-            <option value="blur">blur</option>
+            <option value="noise">Noise</option>
+            <option value="blur">Blur</option>
+            <option value="invert">Invert</option>
         </select>
     </div>
 
@@ -87,7 +88,7 @@
         </div>
         <img id="outputImage" src="" alt="Output Image">
     </div>
-    <input type="text" id="makeCodeInput" placeholder="Enter MakeCode image (WIP)">
+    <input type="text" id="makeCodeInput" placeholder="Enter MakeCode image">
     <button onclick="convertAndDownload()">Convert and Download</button>
 
     <div id="colorListSettings">
@@ -103,8 +104,5 @@
     </div>
 
     <script src="scripts.js"></script>
-    <script>
-           
-    </script>
 </body>
 </html>
