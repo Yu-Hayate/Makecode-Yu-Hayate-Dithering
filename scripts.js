@@ -240,21 +240,13 @@ function setRGBValues(red, green, blue) {
 }
 document.getElementById('Filters').addEventListener('change', function() {
     var selectedValue = this.value;
-    var noneDiv = document.getElementById('none');
-    var grayscaleDiv = document.getElementById('grayscale');
     var customDiv = document.getElementById('customFilter');
     var noiseDiv = document.getElementById('NoiseFilter');
     var blurDiv = document.getElementById('blurFilter')
-    noneDiv.style.display = 'none';
-    grayscaleDiv.style.display = 'none';
     customDiv.style.display = 'none';
     noiseDiv.style.display = 'none';
     blurDiv.style.display = 'none';
-    if (selectedValue === 'none') { 
-        noneDiv.style.display = 'block';
-    } else if (selectedValue === 'GrayScale') {
-        grayscaleDiv.style.display = 'block';
-    } else if (selectedValue === 'custom') {
+    if (selectedValue === 'custom') {
         customDiv.style.display = 'block';
     } else if (selectedValue === 'noise') {
         noiseDiv.style.display = 'block';
@@ -540,14 +532,29 @@ function applyFliter(context,w,h,filterType) {
         const r = document.getElementById('red').value;
         const g = document.getElementById('green').value;
         const b = document.getElementById('blue').value;
-        customFilter(context,w,h,r,g,b)
+        customFilter(context,w,h,r,g,b);
     } else if (filterType == 'noise') {
         const noiseLevel = document.getElementById('noiseLevel').value;
-        noiseFilter(context,w,h,noiseLevel)
+        noiseFilter(context,w,h,noiseLevel);
     } else if (filterType == 'blur') {
         const blurPower = Math.min(Math.abs(document.getElementById('blurPower').value),27);
-        blurImage(context,w,h, blurPower)
+        blurImage(context,w,h, blurPower);
+    } else if (filterType == 'invert') {
+      InvertFilter(context,w,h)  ;
     }
+}
+function InvertFilter(context, w, h) {
+    const imgData = context.getImageData(0, 0, w, h);
+    const data = imgData.data;
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        data[  i  ] = 255 - r
+        data[i + 1] = 255 - g
+        data[i + 2] = 255 - b
+    }
+    context.putImageData(imgData, 0, 0);
 }
 function noiseFilter(context, w, h, noise) {
     const imgData = context.getImageData(0, 0, w, h);
