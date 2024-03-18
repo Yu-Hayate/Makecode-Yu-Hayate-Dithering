@@ -50,9 +50,9 @@ function processImage() {
                 stuckiDithering(ctx, canvas.width, canvas.height);
             } else if (ditheringOption == 'Burkes') {
                 BurkesDithering(ctx, canvas.width, canvas.height);
-            } else if (ditehringOption == 'bayerMatrix2') {
+            } else if (ditheringOption == 'bayerMatrix2') {
                 bayerDithering2x2(ctx, canvas.width, canvas.height)
-            } else if (ditehringOption == 'bayerMatrix16') {
+            } else if (ditheringOption == 'bayerMatrix16') {
                 bayerDithering16x16(ctx, canvas.width, canvas.height)
             }
             outputImage.src = canvas.toDataURL();
