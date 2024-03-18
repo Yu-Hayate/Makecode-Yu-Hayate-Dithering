@@ -1,6 +1,7 @@
 let colors = rgbToHex([[255, 255, 255],[255, 33, 33], [255, 147, 196], [255, 129, 53], [255, 246, 9], [36, 156, 163], [120, 220, 82], [0, 63, 173], [135, 242, 255], [142, 46, 196], [164, 131, 159], [92, 64, 108], [229, 205, 196], [145, 70, 61], [0, 0, 0]]);
 let enabledColorsList = new Array(colors.length).fill(true);
 let fliterOption = 'none';
+renderColors();
 function processImage() {
     const fileInput = document.getElementById('fileInput');
     const inputElement = document.getElementById('scaleFactor');
@@ -78,7 +79,6 @@ var defaultColorList = {
         renderColors();
     }
 }
-
 function loadColorList() {
     var selectedColorListName = document.getElementById('colorLists').value;
     if (selectedColorListName !== 'default') {
@@ -174,7 +174,6 @@ function convertImgStringToCanvas(imgString) {
 
     return canvas;
 }
-
 function convertAndDownload() {
     var makeCodeString = document.getElementById('makeCodeInput').value;
     var canvasData = convertImgStringToCanvas(makeCodeString, colors)
@@ -192,15 +191,12 @@ function convertAndDownload() {
 document.getElementById('red').addEventListener('input', function() {
     changeColorPickerColor();
 });
-
 document.getElementById('green').addEventListener('input', function() {
     changeColorPickerColor();
 });
-
 document.getElementById('blue').addEventListener('input', function() {
     changeColorPickerColor();
 });
-
 function changeColorPickerColor() {
     const colorPicker = document.getElementById('colorPicker');
     const redInput = parseInt(document.getElementById('red').value);
@@ -213,7 +209,6 @@ function changeColorPickerColor() {
 
     colorPicker.value = '#' + redHex + greenHex + blueHex;
 }
-
 function updateColors() {
     const colorPicker = document.getElementById('colorPicker');
     const redInput = document.getElementById('red');
@@ -264,7 +259,7 @@ document.getElementById('sizeSettings').addEventListener('change', function() {
         document.getElementById('pixelGoalOptions').style.display = 'none';
         document.getElementById('widthHeightOptions').style.display = 'none';
         document.getElementById(selectedOption + 'Options').style.display = 'block';
-    }); 
+}); 
 function resizePixelGoal(width, height, totalPixelGoal) {
     var currentPixels = width * height;
     var aspectRatio = width / height;
@@ -304,88 +299,88 @@ function noneDithering(context,w,h) {
     }
     imageString += "`"; 
 }
-function bayerDithering4x4(context,w,h) {
+function bayerDithering4x4(context, w, h) {
     const ditherMatrix = [
-      [0, 8, 2, 10],
-      [12, 4, 14, 6],
-      [3, 11, 1, 9],
-      [15, 7, 13, 5]
+        [0, 8, 2, 10],
+        [12, 4, 14, 6],
+        [3, 11, 1, 9],
+        [15, 7, 13, 5]
     ];
-    palArr = removedisabledColors(hexToRgb(colors),enabledColorsList);
-    var imgData = context.getImageData(0, 0, w, h);
-    var data = imgData.data;
-    var MakecodeImg = []
+    const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
+    const imgData = context.getImageData(0, 0, w, h);
+    const data = imgData.data;
+    const MakecodeImg = [];
     for (let y = 0; y < h; y++) {
-        var row = [];
-        for (let x = 0; x <w; x++) {
+        const row = [];
+        for (let x = 0; x < w; x++) {
             const index = (y * w + x) * 4;
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            const threshold = ditherMatrix[x % 4][y % 4] * 15.9375;
-            const newpixel = findClosest([r, g, b], palArr);
-            const newR = newpixel[0] > threshold ? 255 : 0;
-            const newG = newpixel[1] > threshold ? 255 : 0;
-            const newB = newpixel[2] > threshold ? 255 : 0;
-            row.push(palArr.indexOf(findClosest([newR, newG, newB], palArr)) + 1);
-            data[index] = newR;
-            data[index + 1] = newG;
-            data[index + 2] = newB;
+            const threshold = ditherMatrix[x % 4][y % 4] / 15;
+            let newR = r > threshold * 255 ? 255 : 0;
+            let newG = g > threshold * 255 ? 255 : 0;
+            let newB = b > threshold * 255 ? 255 : 0;
+            const newpixel = findClosest([newR, newG, newB], palArr);
+            data[index] = newpixel[0];
+            data[index + 1] = newpixel[1];
+            data[index + 2] = newpixel[2];
+            row.push(palArr.indexOf(newpixel) + 1);
         }
         MakecodeImg.push(row);
-    } 
-    imageString = ' = img\`\n';
-    for (let rows of MakecodeImg) {
-      for (let pixel of rows) {
-        imageString += pixel.toString(16) + " "; 
-      }
-      imageString += "\n";
     }
-    imageString += "`"; 
+    let imageString = ' = img`\n';
+    for (let rows of MakecodeImg) {
+        for (let pixel of rows) {
+            imageString += pixel.toString(16) + " ";
+        }
+        imageString += "\n";
+    }
+    imageString += "`";
     context.putImageData(imgData, 0, 0);
 }
-function bayerDithering8x8(context,w,h) {
+function bayerDithering8x8(context, w, h) {
     const ditherMatrix = [
-        [ 0, 48, 12, 60,  3, 51, 15, 63],
+        [0, 48, 12, 60, 3, 51, 15, 63],
         [32, 16, 44, 28, 35, 19, 47, 31],
-        [ 8, 56,  4, 52, 11, 59,  7, 55],
+        [8, 56, 4, 52, 11, 59, 7, 55],
         [40, 24, 36, 20, 43, 27, 39, 23],
-        [ 2, 50, 14, 62,  1, 49, 13, 61],
+        [2, 50, 14, 62, 1, 49, 13, 61],
         [34, 18, 46, 30, 33, 17, 45, 29],
-        [10, 58,  6, 54,  9, 57,  5, 53],
+        [10, 58, 6, 54, 9, 57, 5, 53],
         [42, 26, 38, 22, 41, 25, 37, 21]
-      ];
-    palArr = removedisabledColors(hexToRgb(colors),enabledColorsList);
-    var imgData = context.getImageData(0, 0, w, h);
-    var data = imgData.data;
-    var MakecodeImg = []
+    ];
+    const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
+    const imgData = context.getImageData(0, 0, w, h);
+    const data = imgData.data;
+    const MakecodeImg = [];
     for (let y = 0; y < h; y++) {
-        var row = [];
-        for (let x = 0; x <w; x++) {
+        const row = [];
+        for (let x = 0; x < w; x++) {
             const index = (y * w + x) * 4;
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            const threshold = ditherMatrix[x % 8][y % 8] * 3.984375;
-            const newpixel = findClosest([r, g, b], palArr);
-            const newR = newpixel[0] > threshold ? 255 : 0;
-            const newG = newpixel[1] > threshold ? 255 : 0;
-            const newB = newpixel[2] > threshold ? 255 : 0;
-            row.push(palArr.indexOf(findClosest([newR, newG, newB], palArr)) + 1);
-            data[index] = newR;
-            data[index + 1] = newG;
-            data[index + 2] = newB;
+            const threshold = ditherMatrix[x % 8][y % 8] / 63;
+            let newR = r > threshold * 255 ? 255 : 0;
+            let newG = g > threshold * 255 ? 255 : 0;
+            let newB = b > threshold * 255 ? 255 : 0;
+            const newpixel = findClosest([newR, newG, newB], palArr);
+            data[index] = newpixel[0];
+            data[index + 1] = newpixel[1];
+            data[index + 2] = newpixel[2];
+            row.push(palArr.indexOf(newpixel) + 1);
         }
         MakecodeImg.push(row);
-    }  
-    imageString = ' = img\`\n';
-    for (let rows of MakecodeImg) {
-      for (let pixel of rows) {
-        imageString += pixel.toString(16) + " "; 
-      }
-      imageString += "\n";
     }
-    imageString += "`"; 
+    let imageString = ' = img`\n';
+    for (let rows of MakecodeImg) {
+        for (let pixel of rows) {
+            imageString += pixel.toString(16) + " ";
+        }
+        imageString += "\n";
+    }
+    imageString += "`";
     context.putImageData(imgData, 0, 0);
 }
 function ClosesColorDithering(context, w, h) {
@@ -766,7 +761,6 @@ function noiseFilter(context, w, h, noise) {
     }
     context.putImageData(imgData, 0, 0);
 }
-
 function customFilter(context, w, h, red, green, blue) {
     const imgData = context.getImageData(0, 0, w, h);
     const data = imgData.data;
@@ -838,7 +832,6 @@ function blurImage(context, w, h, blurPower) {
     }
     context.putImageData(imgData, 0, 0);
 }
-
 function findClosest(oldpixel, palArr) {
     var minDist = Infinity;
     var idx = 0;
@@ -854,7 +847,6 @@ function findClosest(oldpixel, palArr) {
     }
     return palArr[idx];
 }
-
 function getQuantErr(oldpixel, newpixel) {
     oldpixel[0] -= newpixel[0];
     oldpixel[1] -= newpixel[1];
@@ -873,7 +865,6 @@ function applyErrDiv(pixel, error, factor,div) {
     pixel[2] += (error[2] * factor)/div;
     return pixel;
 }     
-renderColors();
 function addColor() {
     const colorInput = document.getElementById('colorInput');
     const color = colorInput.value.trim();
@@ -977,4 +968,7 @@ function rgbToHex(rgbArray) {
             return hex.length === 1 ? '0' + hex : hex;
         }).join('');
     });
+}
+function arrayEquals(arr1, arr2) {
+    return JSON.stringify(arr1) === JSON.stringify(arr2);
 }
