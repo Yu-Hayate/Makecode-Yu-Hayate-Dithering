@@ -45,6 +45,8 @@ function processImage() {
                 bayerDithering8x8(ctx, canvas.width, canvas.height)
             } else if (ditheringOption == 'falseFloyd') {
                 FalseFloydSteinbergDithering(ctx, canvas.width, canvas.height)
+            } else if (ditheringOption == 'stucki') {
+                stuckiDithering(ctx, canvas.width, canvas.height);
             }
             outputImage.src = canvas.toDataURL();
         };
@@ -134,7 +136,6 @@ function convertImgStringToCanvas(imgString) {
     const height = rows.length;
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
     const inputElement = document.getElementById('scaleFactor');
     const scaleFactor = parseFloat(inputElement.value);
     const newWidth = document.getElementById('width').value;
@@ -177,8 +178,7 @@ function convertAndDownload() {
     var canvasData = convertImgStringToCanvas(makeCodeString, colors)
     var canvas = canvasData;
     var ctx = canvas.getContext('2d');   
-    
-    
+
     var dataURL = canvas.toDataURL('image/png');
     var downloadLink = document.createElement('a');
     downloadLink.href = dataURL;
@@ -435,28 +435,28 @@ function floydSteinbergDithering(context, w, h) {
             quantErr = getQuantErr(oldpixel, newpixel);
             id = ((y * w) + (x + 1)) * 4;
             if (id < data.length) {
-                err = applyErr([data[id], data[id + 1], data[id + 2]], quantErr, 7,4);
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 7,4);
                 data[id] = err[0];
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
             id = (((y + 1) * w) + (x - 1)) * 4;
             if (id < data.length) {
-                err = applyErr([data[id], data[id + 1], data[id + 2]], quantErr, 3,4);
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 3,4);
                 data[id] = err[0];
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
             id = (((y + 1) * w) + x) * 4;
             if (id < data.length) {
-                err = applyErr([data[id], data[id + 1], data[id + 2]], quantErr, 5,4);
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 5,4);
                 data[id] = err[0];
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
             id = (((y + 1) * w) + (x + 1)) * 4;
             if (id < data.length) {
-                err = applyErr([data[id], data[id + 1], data[id + 2]], quantErr, 1,4);
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 1,4);
                 data[id] = err[0];
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
@@ -493,21 +493,21 @@ function FalseFloydSteinbergDithering(context, w, h) {
             quantErr = getQuantErr(oldpixel, newpixel);
             id = (((y) * w) + (x + 1)) * 4;
             if (id < data.length) {
-                err = applyErr([data[id], data[id + 1], data[id + 2]], quantErr, 3,3);
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 3,3);
                 data[id] = err[0];
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
             id = (((y + 1) * w) + (x + 1)) * 4;
             if (id < data.length) {
-                err = applyErr([data[id], data[id + 1], data[id + 2]], quantErr, 2,3);
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 2,3);
                 data[id] = err[0];
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
             id = (((y+1) * w) + (x)) * 4;
             if (id < data.length) {
-                err = applyErr([data[id], data[id + 1], data[id + 2]], quantErr, 3,3);
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 3,3);
                 data[id] = err[0];
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
@@ -526,6 +526,128 @@ function FalseFloydSteinbergDithering(context, w, h) {
     context.putImageData(imgData, 0, 0);
 }
 
+
+function stuckiDithering(context, w, h) {
+    var imgData = context.getImageData(0, 0, w, h);
+    var data = imgData.data;
+    var MakecodeImg = []
+    palArr = removedisabledColors(hexToRgb(colors),enabledColorsList);
+    for (var y = 0; y < h; y++) {
+        var row = [];
+        for (var x = 0; x < w; x++) {
+            var id = ((y * w) + x) * 4;
+            oldpixel = [data[id], data[id + 1], data[id + 2]];
+            newpixel = findClosest(oldpixel, palArr);
+            row.push(palArr.indexOf(newpixel) + 1);
+            data[id] = newpixel[0];
+            data[id + 1] = newpixel[1];
+            data[id + 2] = newpixel[2];
+            data[id + 3] = 255;
+            quantErr = getQuantErr(oldpixel, newpixel);
+
+            id = (((y) * w) + (x + 1)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 8,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+
+            id = (((y) * w) + (x + 2)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 4,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+
+            id = (((y+1) * w) + (x - 2)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 2,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+
+            id = (((y+1) * w) + (x - 1)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 4,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+
+            id = (((y+1) * w) + (x)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 8,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+
+            id = (((y+1) * w) + (x + 1)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 4,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+
+            id = (((y+1) * w) + (x + 2)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 2,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y + 2) * w) + (x - 2)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 1,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y + 2) * w) + (x - 1)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 2,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y + 2) * w) + (x)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 4,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y + 2) * w) + (x + 1)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 2,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y + 2) * w) + (x + 2)) * 4;
+            if (id < data.length) {
+                err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 1,42);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+        }
+        MakecodeImg.push(row);
+    }
+    imageString = ' = img\`\n';
+    for (let rows of MakecodeImg) {
+      for (let pixel of rows) {
+        imageString += pixel.toString(16) + " "; 
+      }
+      imageString += "\n";
+    }
+    imageString += "`"; 
+    context.putImageData(imgData, 0, 0);
+}
 function applyFliter(context,w,h,filterType) {
     if (filterType == 'GrayScale') {
         grayScale(context,w,h);
@@ -666,12 +788,18 @@ function getQuantErr(oldpixel, newpixel) {
     oldpixel[2] -= newpixel[2];
     return oldpixel;
 }
-function applyErr(pixel, error, factor,div) {
+function applyErrBitShift(pixel, error, factor,div) {
     pixel[0] += (error[0] * factor)>>div;
     pixel[1] += (error[1] * factor)>>div;
     pixel[2] += (error[2] * factor)>>div;
     return pixel;
-}       
+}     
+function applyErrDiv(pixel, error, factor,div) {
+    pixel[0] += (error[0] * factor)/div;
+    pixel[1] += (error[1] * factor)/div;
+    pixel[2] += (error[2] * factor)/div;
+    return pixel;
+}     
 renderColors();
 function addColor() {
     const colorInput = document.getElementById('colorInput');
