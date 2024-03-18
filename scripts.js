@@ -129,7 +129,7 @@ function downloadImage() {
 }
 function convertImgStringToCanvas(imgString) {
     imgString = imgString.replace('`', '').replace('img', '');
-    const rows = imgString.trim().split('     ').map(row => row.trim());
+    const rows = imgString.trim().split(/\s{2,}/).map(row => row.trim());
     const width = rows[0].split(' ').length;
     const height = rows.length;
     const canvas = document.createElement('canvas');
