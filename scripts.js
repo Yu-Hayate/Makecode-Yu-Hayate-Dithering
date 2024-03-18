@@ -47,6 +47,8 @@ function processImage() {
                 FalseFloydSteinbergDithering(ctx, canvas.width, canvas.height)
             } else if (ditheringOption == 'stucki') {
                 stuckiDithering(ctx, canvas.width, canvas.height);
+            } else if (ditheringOption == 'Burkes') {
+                BurkesDithering(ctx, canvas.width, canvas.height);
             }
             outputImage.src = canvas.toDataURL();
         };
@@ -525,8 +527,6 @@ function FalseFloydSteinbergDithering(context, w, h) {
     imageString += "`"; 
     context.putImageData(imgData, 0, 0);
 }
-
-
 function stuckiDithering(context, w, h) {
     var imgData = context.getImageData(0, 0, w, h);
     var data = imgData.data;
@@ -544,7 +544,6 @@ function stuckiDithering(context, w, h) {
             data[id + 2] = newpixel[2];
             data[id + 3] = 255;
             quantErr = getQuantErr(oldpixel, newpixel);
-
             id = (((y) * w) + (x + 1)) * 4;
             if (id < data.length) {
                 err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 8,42);
@@ -552,7 +551,6 @@ function stuckiDithering(context, w, h) {
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
-
             id = (((y) * w) + (x + 2)) * 4;
             if (id < data.length) {
                 err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 4,42);
@@ -560,7 +558,6 @@ function stuckiDithering(context, w, h) {
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
-
             id = (((y+1) * w) + (x - 2)) * 4;
             if (id < data.length) {
                 err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 2,42);
@@ -568,7 +565,6 @@ function stuckiDithering(context, w, h) {
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
-
             id = (((y+1) * w) + (x - 1)) * 4;
             if (id < data.length) {
                 err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 4,42);
@@ -576,7 +572,6 @@ function stuckiDithering(context, w, h) {
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
-
             id = (((y+1) * w) + (x)) * 4;
             if (id < data.length) {
                 err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 8,42);
@@ -584,7 +579,6 @@ function stuckiDithering(context, w, h) {
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
-
             id = (((y+1) * w) + (x + 1)) * 4;
             if (id < data.length) {
                 err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 4,42);
@@ -592,7 +586,6 @@ function stuckiDithering(context, w, h) {
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
-
             id = (((y+1) * w) + (x + 2)) * 4;
             if (id < data.length) {
                 err = applyErrDiv([data[id], data[id + 1], data[id + 2]], quantErr, 2,42);
@@ -635,6 +628,86 @@ function stuckiDithering(context, w, h) {
                 data[id + 1] = err[1];
                 data[id + 2] = err[2];
             }
+        }
+        MakecodeImg.push(row);
+    }
+    imageString = ' = img\`\n';
+    for (let rows of MakecodeImg) {
+      for (let pixel of rows) {
+        imageString += pixel.toString(16) + " "; 
+      }
+      imageString += "\n";
+    }
+    imageString += "`"; 
+    context.putImageData(imgData, 0, 0);
+}
+function BurkesDithering(context, w, h) {
+    var imgData = context.getImageData(0, 0, w, h);
+    var data = imgData.data;
+    var MakecodeImg = []
+    palArr = removedisabledColors(hexToRgb(colors),enabledColorsList);
+    for (var y = 0; y < h; y++) {
+        var row = [];
+        for (var x = 0; x < w; x++) {
+            var id = ((y * w) + x) * 4;
+            oldpixel = [data[id], data[id + 1], data[id + 2]];
+            newpixel = findClosest(oldpixel, palArr);
+            row.push(palArr.indexOf(newpixel) + 1);
+            data[id] = newpixel[0];
+            data[id + 1] = newpixel[1];
+            data[id + 2] = newpixel[2];
+            data[id + 3] = 255;
+            quantErr = getQuantErr(oldpixel, newpixel);
+            id = (((y) * w) + (x + 1)) * 4;
+            if (id < data.length) {
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 8,5);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y) * w) + (x + 2)) * 4;
+            if (id < data.length) {
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 4,5);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y+1) * w) + (x - 2)) * 4;
+            if (id < data.length) {
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 2,5);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y+1) * w) + (x - 1)) * 4;
+            if (id < data.length) {
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 4,5);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y+1) * w) + (x)) * 4;
+            if (id < data.length) {
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 8,5);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y+1) * w) + (x + 1)) * 4;
+            if (id < data.length) {
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 4,5);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            id = (((y+1) * w) + (x + 2)) * 4;
+            if (id < data.length) {
+                err = applyErrBitShift([data[id], data[id + 1], data[id + 2]], quantErr, 2,5);
+                data[id] = err[0];
+                data[id + 1] = err[1];
+                data[id + 2] = err[2];
+            }
+            
         }
         MakecodeImg.push(row);
     }
