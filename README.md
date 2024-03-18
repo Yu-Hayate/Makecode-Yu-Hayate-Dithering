@@ -1,9 +1,9 @@
 [website here](https://yu-hayate.github.io/Makecode-Yu-Hayate-Dithering/)
 
 ### Uses?
-* you can use this to convert that only containe a set color palette
+* you can use this to convert that only contains a set color palette
 * or you can use it to add filters to your images
-* you can use it to convert makcode image types into png files (Dont forget that the size setting WILL change the converted Images size)
+* you can use it to convert makecode image types into png files (Dont forget that the size setting WILL change the converted Images size)
 
 ### Functionalities?
 #### Dithering
