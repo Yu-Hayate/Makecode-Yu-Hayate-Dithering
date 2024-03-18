@@ -134,6 +134,7 @@ function convertImgStringToCanvas(imgString) {
     const height = rows.length;
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
     const inputElement = document.getElementById('scaleFactor');
     const scaleFactor = parseFloat(inputElement.value);
     const newWidth = document.getElementById('width').value;
