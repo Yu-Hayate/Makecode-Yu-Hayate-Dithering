@@ -1,6 +1,5 @@
 let colors = rgbToHex([[255, 255, 255],[255, 33, 33], [255, 147, 196], [255, 129, 53], [255, 246, 9], [36, 156, 163], [120, 220, 82], [0, 63, 173], [135, 242, 255], [142, 46, 196], [164, 131, 159], [92, 64, 108], [229, 205, 196], [145, 70, 61], [0, 0, 0]]);
 let enabledColorsList = new Array(colors.length).fill(true);
-let fliterOption = 'none';
 renderColors();
 function processImage() {
     const fileInput = document.getElementById('fileInput');
@@ -12,8 +11,8 @@ function processImage() {
     const newHeight = document.getElementById('height').value;
     const pixelGoal = document.getElementById('maxPixels').value;
     const ditheringOption = document.getElementById('ditheringOptions').value;
-    
-    const reader = new FileReader();
+    const filterOption = document.getElementById('Filters').value;
+    const reader = new FileReader;
     var palArr;
     reader.onload = function(e) {
         const img = new Image();
@@ -33,28 +32,8 @@ function processImage() {
             }
             var imageString = '';
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            applyFliter(ctx, canvas.width, canvas.height, fliterOption)
-            if (ditheringOption == 'none') {
-                noneDithering(ctx, canvas.width, canvas.height)
-            } else if (ditheringOption == 'floyd') {
-            floydSteinbergDithering(ctx, canvas.width, canvas.height);
-            } else if (ditheringOption == 'nearest') {
-                ClosesColorDithering(ctx, canvas.width, canvas.height);
-            } else if (ditheringOption == 'bayerMatrix4') {
-                bayerDithering4x4(ctx, canvas.width, canvas.height)
-            } else if (ditheringOption == 'bayerMatrix8') {
-                bayerDithering8x8(ctx, canvas.width, canvas.height)
-            } else if (ditheringOption == 'falseFloyd') {
-                FalseFloydSteinbergDithering(ctx, canvas.width, canvas.height)
-            } else if (ditheringOption == 'stucki') {
-                stuckiDithering(ctx, canvas.width, canvas.height);
-            } else if (ditheringOption == 'Burkes') {
-                BurkesDithering(ctx, canvas.width, canvas.height);
-            } else if (ditheringOption == 'bayerMatrix2') {
-                bayerDithering2x2(ctx, canvas.width, canvas.height)
-            } else if (ditheringOption == 'bayerMatrix16') {
-                bayerDithering16x16(ctx, canvas.width, canvas.height)
-            }
+            applyFliter(ctx, canvas.width, canvas.height, filterOption)
+            applyDithering(ctx, canvas.width, canvas.height, ditheringOption)
             outputImage.src = canvas.toDataURL();
         };
         img.src = e.target.result;
@@ -62,6 +41,47 @@ function processImage() {
     reader.readAsDataURL(fileInput.files[0]);
     const downloadButton = document.getElementById('downloadButton');
     downloadButton.addEventListener('click', downloadImage);
+}
+function applyDithering(context, w ,h,ditheringType) {
+    if (ditheringType == 'none') {
+        noneDithering(context, w, h)
+    } else if (ditheringType == 'floyd') {
+    floydSteinbergDithering(context, w, h);
+    } else if (ditheringType == 'nearest') {
+        ClosesColorDithering(context, w, h);
+    } else if (ditheringType == 'bayerMatrix4') {
+        bayerDithering4x4(context, w, h)
+    } else if (ditheringType == 'bayerMatrix8') {
+        bayerDithering8x8(context, w, h)
+    } else if (ditheringType == 'falseFloyd') {
+        FalseFloydSteinbergDithering(context, w, h)
+    } else if (ditheringType == 'stucki') {
+        stuckiDithering(context, w, h);
+    } else if (ditheringType == 'Burkes') {
+        BurkesDithering(context, w, h);
+    } else if (ditheringType == 'bayerMatrix2') {
+        bayerDithering2x2(context, w, h)
+    } else if (ditheringType == 'bayerMatrix16') {
+        bayerDithering16x16(context, w, h)
+    }
+}
+function applyFliter(context,w,h,filterType) {
+    if (filterType == 'GrayScale') {
+        grayScale(context,w,h);
+    } else if (filterType == 'custom') {
+        const r = document.getElementById('red').value;
+        const g = document.getElementById('green').value;
+        const b = document.getElementById('blue').value;
+        customFilter(context,w,h,r,g,b);
+    } else if (filterType == 'noise') {
+        const noiseLevel = document.getElementById('noiseLevel').value;
+        noiseFilter(context,w,h,noiseLevel);
+    } else if (filterType == 'blur') {
+        const blurPower = Math.min(Math.abs(document.getElementById('blurPower').value),50);
+        blurImage(context,w,h, blurPower);
+    } else if (filterType == 'invert') {
+      InvertFilter(context,w,h)  ;
+    }
 }
 var defaultColorList = {
     color: rgbToHex([[255, 255, 255],[255, 33, 33], [255, 147, 196], [255, 129, 53], [255, 246, 9], [36, 156, 163], [120, 220, 82], [0, 63, 173], [135, 242, 255], [142, 46, 196], [164, 131, 159], [92, 64, 108], [229, 205, 196], [145, 70, 61], [0, 0, 0]]),
@@ -812,24 +832,6 @@ function BurkesDithering(context, w, h) {
     imageString += "`"; 
     context.putImageData(imgData, 0, 0);
 }
-function applyFliter(context,w,h,filterType) {
-    if (filterType == 'GrayScale') {
-        grayScale(context,w,h);
-    } else if (filterType == 'custom') {
-        const r = document.getElementById('red').value;
-        const g = document.getElementById('green').value;
-        const b = document.getElementById('blue').value;
-        customFilter(context,w,h,r,g,b);
-    } else if (filterType == 'noise') {
-        const noiseLevel = document.getElementById('noiseLevel').value;
-        noiseFilter(context,w,h,noiseLevel);
-    } else if (filterType == 'blur') {
-        const blurPower = Math.min(Math.abs(document.getElementById('blurPower').value),27);
-        blurImage(context,w,h, blurPower);
-    } else if (filterType == 'invert') {
-      InvertFilter(context,w,h)  ;
-    }
-}
 function InvertFilter(context, w, h) {
     const imgData = context.getImageData(0, 0, w, h);
     const data = imgData.data;
@@ -892,12 +894,9 @@ function blurImage(context, w, h, blurPower) {
     const data = imgData.data;
     const radius = Math.floor(blurPower / 2);
     const side = radius * 2 + 1;
-    const kernel = [];
-    for (let y = -radius; y <= radius; y++) {
-        for (let x = -radius; x <= radius; x++) {
-            kernel.push(1 / (side * side));
-        }
-    }
+
+    const kernel = 1 / Math.pow(side,2)
+
     const newData = new Uint8ClampedArray(data.length);
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
@@ -908,7 +907,7 @@ function blurImage(context, w, h, blurPower) {
                     const pixelX = x + kx;
                     if (pixelY >= 0 && pixelY < h && pixelX >= 0 && pixelX < w) {
                         const index = (pixelY * w + pixelX) * 4;
-                        const weight = kernel[(ky + radius) * side + kx + radius];
+                        const weight = kernel;
                         r += data[index] * weight;
                         g += data[index + 1] * weight;
                         b += data[index + 2] * weight;
