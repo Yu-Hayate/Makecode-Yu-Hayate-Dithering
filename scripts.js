@@ -951,20 +951,17 @@ function blurImage(context, w, h, blurPower) {
     context.putImageData(imgData, 0, 0);
 }
 function findClosest(oldpixel, palArr) {
-    var minDist = Infinity;
-    var idx = 0;
-    for (var i = 0; i < palArr.length; i++) {
-        var rDist = oldpixel[0] - palArr[i][0];
-        var gDist = oldpixel[1] - palArr[i][1];
-        var bDist = oldpixel[2] - palArr[i][2];
-        var dist = rDist * rDist + gDist * gDist + bDist * bDist; // Euclidean distance
-        if (dist < minDist) {
-            minDist = dist;
-            idx = i;
+    return palArr.reduce((closest, current, idx) => {
+        const [r, g, b] = current;
+        const dist = (oldpixel[0] - r) ** 2 + (oldpixel[1] - g) ** 2 + (oldpixel[2] - b) ** 2;
+        if (dist < closest.dist) {
+            closest.dist = dist;
+            closest.color = current;
         }
-    }
-    return palArr[idx];
+        return closest;
+    }, { dist: Infinity, color: null }).color;
 }
+
 function getQuantErr(oldpixel, newpixel) {
     oldpixel[0] -= newpixel[0];
     oldpixel[1] -= newpixel[1];
