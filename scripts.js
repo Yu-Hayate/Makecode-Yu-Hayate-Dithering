@@ -1,5 +1,7 @@
 let colors = rgbToHex([[255, 255, 255],[255, 33, 33], [255, 147, 196], [255, 129, 53], [255, 246, 9], [36, 156, 163], [120, 220, 82], [0, 63, 173], [135, 242, 255], [142, 46, 196], [164, 131, 159], [92, 64, 108], [229, 205, 196], [145, 70, 61], [0, 0, 0]]);
 let enabledColorsList = new Array(colors.length).fill(true);
+let filterList = [];
+let filterEffectPowerList = [];
 renderColors();
 function processImage() {
     const fileInput = document.getElementById('fileInput');
@@ -11,7 +13,6 @@ function processImage() {
     const newHeight = document.getElementById('height').value;
     const pixelGoal = document.getElementById('maxPixels').value;
     const ditheringOption = document.getElementById('ditheringOptions').value;
-    const filterOption = document.getElementById('Filters').value;
     const reader = new FileReader;
     var palArr;
     reader.onload = function(e) {
@@ -32,7 +33,7 @@ function processImage() {
             }
             var imageString = '';
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            applyFliter(ctx, canvas.width, canvas.height, filterOption)
+            applyFliter(ctx, canvas.width, canvas.height)
             applyDithering(ctx, canvas.width, canvas.height, ditheringOption)
             outputImage.src = canvas.toDataURL();
         };
@@ -65,22 +66,44 @@ function applyDithering(context, w ,h,ditheringType) {
         bayerDithering16x16(context, w, h)
     }
 }
-function applyFliter(context,w,h,filterType) {
-    if (filterType == 'GrayScale') {
-        grayScale(context,w,h);
-    } else if (filterType == 'custom') {
-        const r = document.getElementById('red').value;
-        const g = document.getElementById('green').value;
-        const b = document.getElementById('blue').value;
-        customFilter(context,w,h,r,g,b);
-    } else if (filterType == 'noise') {
-        const noiseLevel = document.getElementById('noiseLevel').value;
-        noiseFilter(context,w,h,noiseLevel);
-    } else if (filterType == 'blur') {
-        const blurPower = Math.min(Math.abs(document.getElementById('blurPower').value),50);
-        blurImage(context,w,h, blurPower);
-    } else if (filterType == 'invert') {
-      InvertFilter(context,w,h)  ;
+function applyFliter(context,w,h) {
+    if (filterList.length > 0) {
+        for (let i = 0; i < filterList.length; i++) {
+            if (filterList[i] == 'GrayScale') {
+                grayScale(context,w,h);
+            } else if (filterList[i] == 'custom') {
+                const r = filterEffectPowerList[i][0]
+                const g = filterEffectPowerList[i][1]
+                const b = filterEffectPowerList[i][2]
+                customFilter(context,w,h,r,g,b);
+            } else if (filterList[i] == 'noise') {
+                const noiseLevel = filterEffectPowerList[i][0];
+                noiseFilter(context,w,h,noiseLevel);
+            } else if (filterList[i] == 'blur') {
+                const blurPower = Math.min(Math.abs(filterEffectPowerList[i][0]),50);
+                blurImage(context,w,h, blurPower);
+            } else if (filterList[i] == 'invert') {
+              InvertFilter(context,w,h)  ;
+            }
+        }
+    } else {
+        filterType = document.getElementById('Filters').value;
+        if (filterType == 'GrayScale') {
+            grayScale(context,w,h);
+        } else if (filterType == 'custom') {
+            const r = document.getElementById('red').value;
+            const g = document.getElementById('green').value;
+            const b = document.getElementById('blue').value;
+            customFilter(context,w,h,r,g,b);
+        } else if (filterType == 'noise') {
+            const noiseLevel = document.getElementById('noiseLevel').value;
+            noiseFilter(context,w,h,noiseLevel);
+        } else if (filterType == 'blur') {
+            const blurPower = Math.min(Math.abs(document.getElementById('blurPower').value),50);
+            blurImage(context,w,h, blurPower);
+        } else if (filterType == 'invert') {
+          InvertFilter(context,w,h)  ;
+        }
     }
 }
 var defaultColorList = {
@@ -340,7 +363,7 @@ function bayerDithering2x2(context, w, h) {
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            const threshold = ditherMatrix[x % 2][y % 2] / 3;
+            const threshold = ditherMatrix[x % 2][y % 2] / 3 ;
             let newR = r > threshold * 255 ? 255 : 0;
             let newG = g > threshold * 255 ? 255 : 0;
             let newB = b > threshold * 255 ? 255 : 0;
@@ -380,7 +403,7 @@ function bayerDithering4x4(context, w, h) {
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            const threshold = ditherMatrix[x % 4][y % 4] / 15;
+            const threshold = ditherMatrix[x % 4][y % 4] / 15 ;
             let newR = r > threshold * 255 ? 255 : 0;
             let newG = g > threshold * 255 ? 255 : 0;
             let newB = b > threshold * 255 ? 255 : 0;
@@ -477,7 +500,7 @@ function bayerDithering16x16(context, w, h) {
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            const threshold = ditherMatrix[x % 16][y % 16] / 255;
+            const threshold = ditherMatrix[x % 16][y % 16] / 255 ;
             let newR = r > threshold * 255 ? 255 : 0;
             let newG = g > threshold * 255 ? 255 : 0;
             let newB = b > threshold * 255 ? 255 : 0;
@@ -1066,4 +1089,31 @@ function rgbToHex(rgbArray) {
 }
 function arrayEquals(arr1, arr2) {
     return JSON.stringify(arr1) === JSON.stringify(arr2);
+}
+function addFilter() {
+    let data;
+    const filter = document.getElementById('Filters').value
+    if (filter != 'none') {
+        filterList.push(filter)
+        if (filter == 'custom') {
+            const r = document.getElementById('red').value;
+            const g = document.getElementById('green').value;
+            const b = document.getElementById('blue').value;
+            data = [r,g,b];
+        } else if (filter == 'noise') {
+            const noiseLevel = document.getElementById('noiseLevel').value;
+            data = [noiseLevel];
+        } else if (filter == 'blur') {
+            const blurPower = Math.min(Math.abs(document.getElementById('blurPower').value),50);
+            data = [blurPower];
+        } else {
+            data = [];
+        }
+        filterEffectPowerList.push(data)
+    }
+    
+}
+function resetFilter() {
+    filterList = [];
+    filterEffectPowerList = [];
 }
