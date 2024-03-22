@@ -480,17 +480,15 @@ function easterEgg() {
     currentValue++;
     localStorage.setItem('easterEgg', currentValue);
     
-    if (currentValue == 100) {
-        window.location.href = '../html/easterEgg.html';
-    } else  if (currentValue == 1000) {
-        window.location.href = '../html/easterEgg.html';
+    if (currentValue == 100 || currentValue == 1000) {
+        window.location.href = easterEgg.html';
     } else {
         console.log(currentValue)
     }
 
 }
 function goToeasterEgg() {
-    window.location.href = '../html/easterEgg.html';
+    window.location.href = 'easterEgg.html';
 }
 document.getElementById('version').addEventListener('input', easterEgg);
 function bayerDithering16x16(context, w, h) {
