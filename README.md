@@ -12,8 +12,10 @@
 * Stucki Dithering
 * Burkes Dithering
 * Nearest Color
-* 4x4 bayer Matrix (wip)
-* 8x8 bayer Matrix (wip)
+* 2x2 brayer Matrix (wip)
+* 4x4 brayer Matrix (wip)
+* 8x8 brayer Matrix (wip)
+* 16x16 brayer Matrix (wip)
 * theres also the `none` option for those who only want to resize or add filters to the image
 --------
 #### Filters options
