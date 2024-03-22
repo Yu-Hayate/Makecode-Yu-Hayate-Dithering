@@ -3,6 +3,12 @@ body {
     color: rgb(49, 49, 49); /* Text color */
     padding: 20px;
 }
+.hits-link {
+    position: fixed;
+    top: 60px; /* Adjust this value to your preference */
+    right: -4.5px;
+    z-index: 999; /* Ensure it appears above other content */
+}
 .version {
     position: fixed;
     top: 10px;
