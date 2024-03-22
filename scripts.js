@@ -26,11 +26,24 @@ function processImage() {
         img.onload = function() {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            if (document.getElementById('sizeSettings').value === 'widthHeight') {
-                canvas.width = newWidth;
-                canvas.height = newHeight;
+           if (document.getElementById('sizeSettings').value === 'widthHeight') {
+                if (!(newWidth == -1 && newHeight == -1)) {
+                    if (newWidth != -1) {
+                        canvas.width = newWidth;
+                    } else {
+                        canvas.width = img.width * (newHeight/img.height);
+                    }
+                    if (newHeight != -1) {
+                        canvas.height = newHeight;
+                    } else {
+                        canvas.height = img.height * (newWidth/img.width);
+                    }
+                } else {
+                    canvas.width = img.width
+                    canvas.height = img.height
+                }
             } else if (document.getElementById('sizeSettings').value === 'pixelGoal') {
-                let newRes = resizePixelGoal(img.width, img.height, pixelGoal);
+                let newRes = resizePixelGoal(img.width, img.height, pixelGoal)
                 canvas.width = newRes[0];
                 canvas.height = newRes[1];
             } else {
@@ -314,6 +327,9 @@ document.getElementById('sizeSettings').addEventListener('change', function() {
         document.getElementById(selectedOption + 'Options').style.display = 'block';
 }); 
 function resizePixelGoal(width, height, totalPixelGoal) {
+    if (totalPixelGoal == -1) {
+        return [width, height];
+    }
     var currentPixels = width * height;
     var aspectRatio = width / height;
     var newWidth = Math.sqrt(totalPixelGoal * aspectRatio);
