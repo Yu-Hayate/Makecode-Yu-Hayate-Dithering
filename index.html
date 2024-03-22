@@ -7,15 +7,13 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="version" id="version">V1.02.11</div>
-    
-    <div>
+    <div class="version" id="version" onclick="easterEgg()">V1.01.10</div>
+    <button style="none" onclick="goToeasterEgg()" id="goToEgg">go to congrats page</button>
         <input type="file" id="fileInput" accept="image/*">
-    </div>
     <a href="https://hits.seeyoufarm.com" class="hits-link" style="display: inline-block; transform: scale(0.8);">
         <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fyu-hayate.github.io%2FMakecode-Yu-Hayate-Dithering%2F&count_bg=%231D1D1D&title_bg=%23585858&icon=eventstore.svg&icon_color=%23030303&title=Visits&edge_flat=false" style="transform: scale(2.5);"/>
     </a>
-    <div>
+        <div>
         <label for="sizeSettings" style="color: white;">Size Settings:</label>
         <select id="sizeSettings">
             <option value="scale">Scale</option>
@@ -89,12 +87,16 @@
     <button onclick="processImage()">Convert and Resize</button>
     <button onclick="copyToClipboard()">Copy Image String</button>
     <button id="downloadButton">Download Image</button>
+    <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+    </div>
     <div class="image-container">
         <div class="color-input-container">
             <input type="color" id="colorInput">
             <button onclick="addColor()">Add Color</button>
             <ul id="colorList"></ul>
         </div>
+      
         <img id="outputImage" src="" alt="Output Image">
     </div>
     <input type="text" id="makeCodeInput" placeholder="Enter MakeCode image">
@@ -104,13 +106,13 @@
         <label for="colorLists" style="color: white;">Color Lists:</label>
         <select id="colorLists">
             <option value="default">Default</option>
-            <!-- You can dynamically add options here using JavaScript -->
         </select>
         <button onclick="saveColorList()">Save</button>
         <button onclick="loadColorList()">Load</button>
         <button onclick="removeColorList()">remove</button>
 
     </div>
+    <!--<button onclick="goToSettingsPage()" class="settings-icon"></button>-->
 
     <script src="scripts.js"></script>
 </body>
