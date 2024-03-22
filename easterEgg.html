@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congratulations!</title>
+</head>
+<body>
+    <div id="congratsMessage"></div>
+
+    <script>
+        window.onload = function() {
+            const clicks = Number(localStorage.getItem('easterEgg')) || 0;
+            const congratsMessage = document.getElementById('congratsMessage');
+
+            congratsMessage.textContent = `Congrats! You wasted your time clicking the version ${clicks} times!`;
+        };
+    </script>
+</body>
+</html>
