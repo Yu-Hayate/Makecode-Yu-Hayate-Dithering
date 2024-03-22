@@ -481,7 +481,7 @@ function easterEgg() {
     localStorage.setItem('easterEgg', currentValue);
     
     if (currentValue == 100 || currentValue == 1000) {
-        window.location.href = easterEgg.html';
+        window.location.href = 'easterEgg.html';
     } else {
         console.log(currentValue)
     }
