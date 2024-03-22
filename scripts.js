@@ -3,6 +3,12 @@ let enabledColorsList = new Array(colors.length).fill(true);
 let filterList = [];
 let filterEffectPowerList = [];
 renderColors();
+const easterEggHTMLBtnDiv = document.getElementById('goToEgg');
+let currentValue = Number(localStorage.getItem('easterEgg')) || 0;
+easterEggHTMLBtnDiv.style.display = 'none';
+if (currentValue >= 1000) {
+    easterEggHTMLBtnDiv.style.display = 'block';
+}
 function processImage() {
     const fileInput = document.getElementById('fileInput');
     const inputElement = document.getElementById('scaleFactor');
@@ -387,10 +393,10 @@ function bayerDithering2x2(context, w, h) {
 }
 function bayerDithering4x4(context, w, h) {
     const ditherMatrix = [
-        [0, 8, 2, 10],
-        [12, 4, 14, 6],
-        [3, 11, 1, 9],
-        [15, 7, 13, 5]
+        [ 0,  8,  2, 10],
+        [12,  4, 14,  6],
+        [ 3, 11,  1,  9],
+        [15,  7, 13,  5]
     ];
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
     const imgData = context.getImageData(0, 0, w, h);
@@ -427,13 +433,13 @@ function bayerDithering4x4(context, w, h) {
 }
 function bayerDithering8x8(context, w, h) {
     const ditherMatrix = [
-        [0, 48, 12, 60, 3, 51, 15, 63],
+        [ 0, 48, 12, 60,  3, 51, 15, 63],
         [32, 16, 44, 28, 35, 19, 47, 31],
-        [8, 56, 4, 52, 11, 59, 7, 55],
+        [ 8, 56,  4, 52, 11, 59,  7, 55],
         [40, 24, 36, 20, 43, 27, 39, 23],
-        [2, 50, 14, 62, 1, 49, 13, 61],
+        [ 2, 50, 14, 62,  1, 49, 13, 61],
         [34, 18, 46, 30, 33, 17, 45, 29],
-        [10, 58, 6, 54, 9, 57, 5, 53],
+        [10, 58,  6, 54,  9, 57,  5, 53],
         [42, 26, 38, 22, 41, 25, 37, 21]
     ];
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
@@ -469,26 +475,43 @@ function bayerDithering8x8(context, w, h) {
     imageString += "`";
     context.putImageData(imgData, 0, 0);
 }
+function easterEgg() {
+    let currentValue = Number(localStorage.getItem('easterEgg')) || 0;
+    currentValue++;
+    localStorage.setItem('easterEgg', currentValue);
+    
+    if (currentValue == 100) {
+        window.location.href = '../html/easterEgg.html';
+    } else  if (currentValue == 1000) {
+        window.location.href = '../html/easterEgg.html';
+    } else {
+        console.log(currentValue)
+    }
+
+}
+function goToeasterEgg() {
+    window.location.href = '../html/easterEgg.html';
+}
+document.getElementById('version').addEventListener('input', easterEgg);
 function bayerDithering16x16(context, w, h) {
     const ditherMatrix = [
-        [0, 192, 48, 240, 12, 204, 60, 252, 3, 195, 51, 243, 15, 207, 63, 255],
-        [128, 64, 176, 112, 140, 76, 188, 124, 131, 67, 179, 115, 143, 79, 191, 127],
-        [32, 224, 16, 208, 44, 236, 28, 220, 35, 227, 19, 211, 47, 239, 31, 223],
-        [160, 96, 144, 80, 172, 108, 156, 92, 163, 99, 147, 83, 175, 111, 159, 95],
-        [8, 200, 56, 248, 4, 196, 52, 244, 11, 203, 59, 251, 7, 199, 55, 247],
-        [136, 72, 184, 120, 132, 68, 180, 116, 139, 75, 187, 123, 142, 78, 190, 126],
-        [40, 232, 24, 216, 36, 228, 20, 212, 43, 235, 27, 219, 39, 231, 23, 215],
-        [168, 104, 152, 88, 164, 100, 148, 84, 171, 107, 155, 91, 167, 103, 151, 87],
-        [2, 194, 50, 242, 14, 206, 62, 254, 1, 193, 49, 241, 13, 205, 61, 253],
-        [130, 66, 178, 114, 129, 65, 177, 113, 134, 70, 182, 118, 133, 69, 181, 117],
-        [34, 226, 18, 210, 46, 238, 30, 222, 33, 225, 17, 209, 45, 237, 29, 221],
-        [162, 98, 146, 82, 174, 110, 158, 94, 161, 97, 145, 81, 173, 109, 157, 93],
-        [10, 202, 58, 250, 6, 198, 54, 246, 9, 201, 57, 249, 5, 197, 53, 245],
-        [138, 74, 186, 122, 137, 73, 185, 121, 140, 76, 188, 124, 141, 77, 189, 125],
-        [42, 234, 26, 218, 38, 230, 22, 214, 41, 233, 25, 217, 37, 229, 21, 213],
-        [170, 106, 154, 90, 166, 102, 150, 86, 169, 105, 153, 89, 165, 101, 149, 85]
+        [  0, 192,  48, 240,  12, 204,  60, 252,   3, 195,  51, 243,  15, 207,  63, 255],
+        [128,  64, 176, 112, 140,  76, 188, 124, 131,  67, 179, 115, 143,  79, 191, 127],
+        [ 32, 224,  16, 208,  44, 236,  28, 220,  35, 227,  19, 211,  47, 239,  31, 223],
+        [160,  96, 144,  80, 172, 108, 156,  92, 163,  99, 147,  83, 175, 111, 159,  95],
+        [  8, 200,  56, 248,   4, 196,  52, 244,  11, 203,  59, 251,   7, 199,  55, 247],
+        [136,  72, 184, 120, 132,  68, 180, 116, 139,  75, 187, 123, 142,  78, 190, 126],
+        [ 40, 232,  24, 216,  36, 228,  20, 212,  43, 235,  27, 219,  39, 231,  23, 215],
+        [168, 104, 152,  88, 164, 100, 148,  84, 171, 107, 155,  91, 167, 103, 151,  87],
+        [  2, 194,  50, 242,  14, 206,  62, 254,   1, 193,  49, 241,  13, 205,  61, 253],
+        [130,  66, 178, 114, 129,  65, 177, 113, 134,  70, 182, 118, 133,  69, 181, 117],
+        [ 34, 226,  18, 210,  46, 238,  30, 222,  33, 225,  17, 209,  45, 237,  29, 221],
+        [162,  98, 146,  82, 174, 110, 158,  94, 161,  97, 145,  81, 173, 109, 157,  93],
+        [ 10, 202,  58, 250,   6, 198,  54, 246,   9, 201,  57, 249,   5, 197,  53, 245],
+        [138,  74, 186, 122, 137,  73, 185, 121, 140,  76, 188, 124, 141,  77, 189, 125],
+        [ 42, 234,  26, 218,  38, 230,  22, 214,  41, 233,  25, 217,  37, 229,  21, 213],
+        [170, 106, 154,  90, 166, 102, 150,  86, 169, 105, 153,  89, 165, 101, 149,  85]
     ];
-    
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
     const imgData = context.getImageData(0, 0, w, h);
     const data = imgData.data;
@@ -531,7 +554,6 @@ function ClosesColorDithering(context, w, h) {
         var row = [];
         for (var x = 0; x < w; x++) {
             var id = ((y * w) + x) * 4;
-            
             oldpixel = [data[id], data[id + 1], data[id + 2]];
             newpixel = findClosest(oldpixel, palArr);
             row.push(palArr.indexOf(newpixel) + 1);
@@ -917,9 +939,7 @@ function blurImage(context, w, h, blurPower) {
     const data = imgData.data;
     const radius = Math.floor(blurPower / 2);
     const side = radius * 2 + 1;
-
     const kernel = 1 / Math.pow(side,2)
-
     const newData = new Uint8ClampedArray(data.length);
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
@@ -961,7 +981,6 @@ function findClosest(oldpixel, palArr) {
         return closest;
     }, { dist: Infinity, color: null }).color;
 }
-
 function getQuantErr(oldpixel, newpixel) {
     oldpixel[0] -= newpixel[0];
     oldpixel[1] -= newpixel[1];
