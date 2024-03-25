@@ -1147,3 +1147,21 @@ function resetFilter() {
     filterList = [];
     filterEffectPowerList = [];
 }
+ document.addEventListener("DOMContentLoaded", function() {
+    var select = document.getElementById("ditheringOptions");
+    var hoverBox = document.getElementById("hoverBox");
+    var hoverDescription = document.getElementById("hoverDescription");
+    select.addEventListener("mouseover", function(event) {
+        if (event.target.tagName === "OPTION") {
+            var optionDescription = event.target.getAttribute("data-description");
+            var optionRect = event.target.getBoundingClientRect();
+             hoverDescription.textContent = optionDescription;
+             hoverBox.style.display = "block";
+            hoverBox.style.left = optionRect.left + "px";
+            hoverBox.style.top = (optionRect.top + window.scrollY + 20) + "px"; // Adjusting the position for better visibility
+        }
+    });
+    select.addEventListener("mouseout", function() {
+        hoverBox.style.display = "none";
+    });
+});
