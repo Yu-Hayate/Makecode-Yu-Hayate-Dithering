@@ -69,18 +69,23 @@
     <div>
         <label for="ditheringOptions" style="color: white;">Dithering Options:</label>
         <select id="ditheringOptions">
-            <option value="floyd">floyd-Steinberg</option>
-            <option value="falseFloyd">False Floyd-Steinberg</option>
-            <option value="stucki">Stucki Dithering</option>
-            <option value="Burkes">Burkes Dithering</option>
-            <option value="nearest">Nearest Color</option>
-            <option value="bayerMatrix2">2x2 bayer Matrix (wip)</option>
-            <option value="bayerMatrix4">4x4 bayer Matrix (wip)</option>
-            <option value="bayerMatrix8">8x8 bayer Matrix (wip)</option>
-            <option value="bayerMatrix16">16x16 bayer Matrix (wip)</option>
-            <option value="none">none</option>
+            <option value="floyd" title="Floyd-Steinberg dithering is an image dithering algorithm used to achieve better results than traditional fixed thresholding techniques.">Floyd-Steinberg</option>
+            <option value="falseFloyd" title="False Floyd-Steinberg dithering is a variant of the original Floyd-Steinberg algorithm. It provides similar results but with less computational overhead.">False Floyd-Steinberg</option>
+            <option value="stucki" title="Stucki dithering is an error diffusion algorithm that spreads the quantization error to neighboring pixels in a specific pattern.">Stucki Dithering</option>
+            <option value="Burkes" title="Burkes dithering is another error diffusion algorithm similar to Stucki dithering but with a different error distribution pattern.">Burkes Dithering</option>
+            <option value="nearest" title="Nearest color dithering simply assigns each pixel in the image to the nearest color in the palette. It's the simplest form of dithering but can result in noticeable color banding.">Nearest Color</option>
+            <option value="bayerMatrix2" title="The 2x2 Bayer matrix dithering method is a simple ordered dithering technique based on a 2x2 matrix.">2x2 Bayer Matrix (wip)</option>
+            <option value="bayerMatrix4" title="The 4x4 Bayer matrix dithering method is an ordered dithering technique based on a 4x4 matrix. It provides better results compared to the 2x2 matrix but requires more computational resources.">4x4 Bayer Matrix (wip)</option>
+            <option value="bayerMatrix8" title="The 8x8 Bayer matrix dithering method is an ordered dithering technique based on a 8x8 matrix. It offers even better results than the 4x4 matrix but requires higher computational resources.">8x8 Bayer Matrix (wip)</option>
+            <option value="bayerMatrix16" title="The 16x16 Bayer matrix dithering method is an ordered dithering technique based on a 16x16 matrix. It provides high-quality dithering results but demands significant computational power.">16x16 Bayer Matrix (wip)</option>
+            <option value="none" title="Selecting 'None' disables dithering, leaving the image unchanged.">none</option>
         </select>
     </div>
+    
+    <div id="hoverBox" style="display: none; position: absolute; background-color: #f9f9f9; border: 1px solid #ccc; padding: 10px;">
+        <p id="hoverDescription"></p>
+    </div>
+    
     <lable for="varName" style="color: white;">variable name:</lable>
     <input type="text" id="varName" placeholder="Enter Name for sprite" value="NewImage">
     <br>
