@@ -70,9 +70,9 @@ function applyDithering(context, w ,h,ditheringType) {
     } else if (ditheringType == 'nearest') {
         ClosesColorDithering(context, w, h);
     } else if (ditheringType == 'bayerMatrix4') {
-        bayerDithering4x4(context, w, h)
+        brayerDithering4x4(context, w, h)
     } else if (ditheringType == 'bayerMatrix8') {
-        bayerDithering8x8(context, w, h)
+        brayerDithering8x8(context, w, h)
     } else if (ditheringType == 'falseFloyd') {
         FalseFloydSteinbergDithering(context, w, h)
     } else if (ditheringType == 'stucki') {
@@ -80,9 +80,9 @@ function applyDithering(context, w ,h,ditheringType) {
     } else if (ditheringType == 'Burkes') {
         BurkesDithering(context, w, h);
     } else if (ditheringType == 'bayerMatrix2') {
-        bayerDithering2x2(context, w, h)
+        brayerDithering2x2(context, w, h)
     } else if (ditheringType == 'bayerMatrix16') {
-        bayerDithering16x16(context, w, h)
+        brayerDithering16x16(context, w, h)
     }
 }
 function applyFliter(context,w,h) {
@@ -91,9 +91,9 @@ function applyFliter(context,w,h) {
             if (filterList[i] == 'GrayScale') {
                 grayScale(context,w,h);
             } else if (filterList[i] == 'custom') {
-                const r = filterEffectPowerList[i][0]
-                const g = filterEffectPowerList[i][1]
-                const b = filterEffectPowerList[i][2]
+                const r = filterEffectPowerList[i][0];
+                const g = filterEffectPowerList[i][1];
+                const b = filterEffectPowerList[i][2];
                 customFilter(context,w,h,r,g,b);
             } else if (filterList[i] == 'noise') {
                 const noiseLevel = filterEffectPowerList[i][0];
@@ -102,7 +102,12 @@ function applyFliter(context,w,h) {
                 const blurPower = Math.min(Math.abs(filterEffectPowerList[i][0]),50);
                 blurImage(context,w,h, blurPower);
             } else if (filterList[i] == 'invert') {
-              InvertFilter(context,w,h)  ;
+              InvertFilter(context,w,h);
+            } else if (filterList[i] == 'unBlur') {
+                unblurImage(context,w,h);
+            } else if (filterList[i] == 'median') {
+                const radius = Math.min(Math.abs(filterEffectPowerList[i][0]),15);
+                medianFilter(context,w,h, 1);
             }
         }
     } else {
@@ -122,9 +127,75 @@ function applyFliter(context,w,h) {
             blurImage(context,w,h, blurPower);
         } else if (filterType == 'invert') {
           InvertFilter(context,w,h)  ;
+        } else if (filterType == 'unBlur') {
+            unblurImage(context,w,h);  
+        } else if (filterType == 'median') {
+            const radius = Math.min(Math.abs(document.getElementById('radius').value),15);
+            medianFilter(context,w,h, radius);
         }
     }
 }
+function medianFilter(context, w, h, radius) {
+    const imgData = context.getImageData(0, 0, w, h);
+    const data = imgData.data;
+    const newData = new Uint8ClampedArray(data.length); // Create a new array to store modified data
+
+    // Iterate over each pixel
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            // Get the index of the current pixel
+            const index = (y * w + x) * 4;
+            const redValues = [];
+            const greenValues = [];
+            const blueValues = [];
+
+            // Iterate over the pixels in the neighborhood
+            for (let j = -radius; j <= radius; j++) {
+                for (let i = -radius; i <= radius; i++) {
+                    // Get the coordinates of the current neighbor pixel
+                    const nx = x + i;
+                    const ny = y + j;
+
+                    // Ensure the neighbor pixel is within the image bounds
+                    if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+                        // Get the index of the neighbor pixel
+                        const neighborIndex = (ny * w + nx) * 4;
+
+                        // Collect color values from the neighborhood
+                        redValues.push(data[neighborIndex]);
+                        greenValues.push(data[neighborIndex + 1]);
+                        blueValues.push(data[neighborIndex + 2]);
+                    }
+                }
+            }
+
+            // Sort the color values
+            redValues.sort((a, b) => a - b);
+            greenValues.sort((a, b) => a - b);
+            blueValues.sort((a, b) => a - b);
+
+            // Get the median color values
+            const medianRed = redValues[Math.floor(redValues.length / 2)];
+            const medianGreen = greenValues[Math.floor(greenValues.length / 2)];
+            const medianBlue = blueValues[Math.floor(blueValues.length / 2)];
+
+            // Assign the median color values to the pixel
+            newData[index] = medianRed;
+            newData[index + 1] = medianGreen;
+            newData[index + 2] = medianBlue;
+            newData[index + 3] = data[index + 3]; // Preserve alpha channel
+        }
+    }
+
+    // Copy the modified data back to the original data array
+    for (let i = 0; i < data.length; i++) {
+        data[i] = newData[i];
+    }
+
+    // Put the modified image data back to the canvas
+    context.putImageData(imgData, 0, 0);
+}
+
 var defaultColorList = {
     color: rgbToHex([[255, 255, 255],[255, 33, 33], [255, 147, 196], [255, 129, 53], [255, 246, 9], [36, 156, 163], [120, 220, 82], [0, 63, 173], [135, 242, 255], [142, 46, 196], [164, 131, 159], [92, 64, 108], [229, 205, 196], [145, 70, 61], [0, 0, 0]]),
     enabledColorsList: [true,true,true,true,true,true,true,true,true,true,true,true,true,true,true]
@@ -307,15 +378,19 @@ document.getElementById('Filters').addEventListener('change', function() {
     var customDiv = document.getElementById('customFilter');
     var noiseDiv = document.getElementById('NoiseFilter');
     var blurDiv = document.getElementById('blurFilter')
+    var radiusDiv = document.getElementById('RadiusFilter')
     customDiv.style.display = 'none';
     noiseDiv.style.display = 'none';
     blurDiv.style.display = 'none';
+    radiusDiv.style.display = 'none';
     if (selectedValue === 'custom') {
         customDiv.style.display = 'block';
     } else if (selectedValue === 'noise') {
         noiseDiv.style.display = 'block';
     } else if (selectedValue === 'blur') {
         blurDiv.style.display = 'block';
+    } else if (selectedValue === 'median') {
+        radiusDiv.style.display = 'block';
     }
     fliterOption = selectedValue;
 });
@@ -368,7 +443,7 @@ function noneDithering(context,w,h) {
     }
     imageString += "`"; 
 }
-function bayerDithering2x2(context, w, h) {
+function brayerDithering2x2(context, w, h) {
     const ditherMatrix = [
         [0, 2],
         [3, 1]
@@ -385,7 +460,7 @@ function bayerDithering2x2(context, w, h) {
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            const threshold = ditherMatrix[x % 2][y % 2] / 3 ;
+            const threshold = ditherMatrix[x % 2][y % 2] / 3;
             let newR = r > threshold * 255 ? 255 : 0;
             let newG = g > threshold * 255 ? 255 : 0;
             let newB = b > threshold * 255 ? 255 : 0;
@@ -407,7 +482,7 @@ function bayerDithering2x2(context, w, h) {
     imageString += "`";
     context.putImageData(imgData, 0, 0);
 }
-function bayerDithering4x4(context, w, h) {
+function brayerDithering4x4(context, w, h) {
     const ditherMatrix = [
         [ 0,  8,  2, 10],
         [12,  4, 14,  6],
@@ -447,7 +522,7 @@ function bayerDithering4x4(context, w, h) {
     imageString += "`";
     context.putImageData(imgData, 0, 0);
 }
-function bayerDithering8x8(context, w, h) {
+function brayerDithering8x8(context, w, h) {
     const ditherMatrix = [
         [ 0, 48, 12, 60,  3, 51, 15, 63],
         [32, 16, 44, 28, 35, 19, 47, 31],
@@ -507,7 +582,7 @@ function goToeasterEgg() {
     window.location.href = 'easterEgg.html';
 }
 document.getElementById('version').addEventListener('input', easterEgg);
-function bayerDithering16x16(context, w, h) {
+function brayerDithering16x16(context, w, h) {
     const ditherMatrix = [
         [  0, 192,  48, 240,  12, 204,  60, 252,   3, 195,  51, 243,  15, 207,  63, 255],
         [128,  64, 176, 112, 140,  76, 188, 124, 131,  67, 179, 115, 143,  79, 191, 127],
@@ -984,6 +1059,51 @@ function blurImage(context, w, h, blurPower) {
     }
     context.putImageData(imgData, 0, 0);
 }
+function unblurImage(context, w, h) {
+    const unblurMatrix = [
+        [0, -1,  0],
+        [-1, 5, -1],
+        [0, -1,  0]
+    ];
+    const imgData = context.getImageData(0, 0, w, h);
+    const data = imgData.data;
+    const newData = new Uint8ClampedArray(data.length); // Create a new array to store modified data
+
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            const index = (y * w + x) * 4;
+            const PixelColor = [0, 0, 0];
+            
+            for (let ky = -1; ky <= 1; ky++) {
+                for (let kx = -1; kx <= 1; kx++) {
+                    const PixelMulty = unblurMatrix[ky + 1][kx + 1];
+                    const dx = x + kx, dy = y + ky;
+                    if (dx >= 0 && dx < w && dy >= 0 && dy < h) {
+                        const neighborIndex = (dy * w + dx) * 4;
+                        const r = data[neighborIndex];
+                        const g = data[neighborIndex + 1];
+                        const b = data[neighborIndex + 2];
+                        PixelColor[0] += r * PixelMulty;
+                        PixelColor[1] += g * PixelMulty;
+                        PixelColor[2] += b * PixelMulty;
+                    }
+                }
+            }
+            
+            newData[index] = PixelColor[0];
+            newData[index + 1] = PixelColor[1];
+            newData[index + 2] = PixelColor[2];
+            newData[index + 3] = data[index + 3]; // Preserve alpha channel
+        }
+    }
+    
+    for (let i = 0; i < data.length; i++) {
+        data[i] = newData[i];
+    }
+    
+    context.putImageData(imgData, 0, 0);
+}
+
 function findClosest(oldpixel, palArr) {
     return palArr.reduce((closest, current, idx) => {
         const [r, g, b] = current;
@@ -1136,6 +1256,9 @@ function addFilter() {
         } else if (filter == 'blur') {
             const blurPower = Math.min(Math.abs(document.getElementById('blurPower').value),50);
             data = [blurPower];
+        } else if (filter == 'median') {
+            const radius = Math.min(Math.abs(document.getElementById('blurPower').value),10);
+            data = [radius]
         } else {
             data = [];
         }
