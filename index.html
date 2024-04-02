@@ -39,18 +39,13 @@
             <option value="custom">Custom</option>
             <option value="noise">Noise</option>
             <option value="blur">Blur</option>
+            <option value="unBlur">unBlur</option>
             <option value="invert">Invert</option>
+            <option value="median">median (DeNoiser)</option>
         </select>
         <button onclick="addFilter()">Add Filter</button>
         <button onclick="resetFilter()">Reset Filters</button>
     </div>
-
-    <div id="none" style="display: none;">
-    </div>
-
-    <div id="grayscale" style="display: none;">
-    </div>
-
     <div id="customFilter" style="display: none;">
         <input type="number" value="" id="red" placeholder="Red" min="0" max="255">
         <input type="number" value="" id="green" placeholder="Green" min="0" max="255">
@@ -59,6 +54,9 @@
         <button onclick="updateColors()">Set</button>
     </div>
     
+    <div id="RadiusFilter" style="display: none;">
+        <input type="number" value="" id="radius" placeholder="Radius">
+    </div>
     
     <div id="NoiseFilter" style="display: none;">
         <input type="number" value="" id="noiseLevel" placeholder="Enter Noise level">
