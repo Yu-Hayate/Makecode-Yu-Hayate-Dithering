@@ -25,6 +25,8 @@
 * Noise
 * Blur
 * Invert
+* unblur
+* median
 --------
 #### Color palette
 you start with the default makcode arcade color palette 
