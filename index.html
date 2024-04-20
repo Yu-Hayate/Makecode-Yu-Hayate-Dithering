@@ -116,5 +116,14 @@
 
     </div>
     <script src="scripts.js"></script>
+    <script>
+    let docTitle = document.title
+    window.addEventListener("blur", () =>{
+    document.title = "come back " + `\ud83e\udd7a`;
+    });
+    window.addEventListener("focus", () =>{
+    document.title = docTitle;
+    });
+    <script>
 </body>
 </html>
