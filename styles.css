@@ -1,7 +1,7 @@
 body {
-    background-color: #333; /* Dark background color */
-    color: rgb(49, 49, 49); /* Text color */
-    padding: 20px;
+    background-color: #233; /* Dark background color */
+    color: rgb(49, 60, 60); /* Text color */
+    padding: 22px;
 }
 .hits-link {
     position: fixed;
@@ -13,13 +13,13 @@ body {
     position: fixed;
     top: 10px;
     right: 10px;
-    background-color: #292929;
-    padding: 5px 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    background-color: #344;
+    padding: 6px 12px;
+    border: 2px solid #bcc;
+    border-radius: 6px;
     font-family: Arial, sans-serif;
-    font-size: 24px;
-    color: #ebebeb
+    font-size: 27px;
+    color: #eff;
 }
 .image-container {
     display: flex;
