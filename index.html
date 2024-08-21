@@ -5,117 +5,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Manipulator</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="scripts.js"></script>
 </head>
 <body>
-    <div class="version" id="version" onclick="easterEgg()">V1.01.12</div>
-    <button style="none" onclick="goToeasterEgg()" id="goToEgg">go to congrats page</button>
-        <input type="file" id="fileInput" accept="image/*">
+    <div class="version" id="version" onclick="easterEgg()">V1.02.00</div>
     <a href="https://hits.seeyoufarm.com" class="hits-link" style="display: inline-block; transform: scale(0.8);">
         <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fyu-hayate.github.io%2FMakecode-Yu-Hayate-Dithering%2F&count_bg=%231D1D1D&title_bg=%23585858&icon=eventstore.svg&icon_color=%23030303&title=Visits&edge_flat=false" style="transform: scale(2.5);"/>
     </a>
-        <div>
-        <label for="sizeSettings" style="color: white;">Size Settings:</label>
-        <select id="sizeSettings">
-            <option value="scale">Scale</option>
-            <option value="pixelGoal">Pixel Goal</option>
-            <option value="widthHeight">Width & Height</option>
-        </select>
-    </div>
-    <div id="scaleOptions">
-        <input type="number" value="1" id="scaleFactor" placeholder="Enter scale factor">
-    </div>
-    <div id="pixelGoalOptions" style="display: none;">
-        <input type="number" value="19200" id="maxPixels" placeholder="Enter a max pixel count">
-    </div>
-    <div id="widthHeightOptions" style="display: none;">
-        <input type="number" value="160" id="width" placeholder="Enter width">
-        <input type="number" value="120" id="height" placeholder="Enter height">
-    </div>
-    <div>
-        <label for="Filters" style="color: white">Filter Options</label>
-        <select id="Filters">
-            <option value="none">None</option>
-            <option value="GrayScale">Grayscale</option>
-            <option value="custom">Custom</option>
-            <option value="noise">Noise</option>
-            <option value="blur">Blur</option>
-            <option value="unBlur">unBlur</option>
-            <option value="invert">Invert</option>
-            <option value="median">median (DeNoiser)</option>
-        </select>
-        <button onclick="addFilter()">Add Filter</button>
-        <button onclick="resetFilter()">Reset Filters</button>
-    </div>
-    <div id="customFilter" style="display: none;">
-        <input type="number" value="" id="red" placeholder="Red" min="0" max="255">
-        <input type="number" value="" id="green" placeholder="Green" min="0" max="255">
-        <input type="number" value="" id="blue" placeholder="Blue" min="0" max="255">
-        <input type="color" id="colorPicker">
-        <button onclick="updateColors()">Set</button>
-    </div>
-    
-    <div id="RadiusFilter" style="display: none;">
-        <input type="number" value="" id="radius" placeholder="Radius">
-    </div>
-    
-    <div id="NoiseFilter" style="display: none;">
-        <input type="number" value="" id="noiseLevel" placeholder="Enter Noise level">
-    </div>
-    <div id="blurFilter" style="display: none;">
-        <input type="number" value="" id="blurPower" placeholder="Enter blur power">
-    </div>
-    <div>
-        <label for="ditheringOptions" style="color: white;">Dithering Options:</label>
-        <select id="ditheringOptions">
-            <option value="floyd" title="Floyd-Steinberg dithering is an image dithering algorithm used to achieve better results than traditional fixed thresholding techniques.">Floyd-Steinberg</option>
-            <option value="falseFloyd" title="False Floyd-Steinberg dithering is a variant of the original Floyd-Steinberg algorithm. It provides similar results but with less computational overhead.">False Floyd-Steinberg</option>
-            <option value="stucki" title="Stucki dithering is an error diffusion algorithm that spreads the quantization error to neighboring pixels in a specific pattern.">Stucki Dithering</option>
-            <option value="Burkes" title="Burkes dithering is another error diffusion algorithm similar to Stucki dithering but with a different error distribution pattern.">Burkes Dithering</option>
-            <option value="nearest" title="Nearest color dithering simply assigns each pixel in the image to the nearest color in the palette. It's the simplest form of dithering but can result in noticeable color banding.">Nearest Color</option>
-            <option value="bayerMatrix2" title="The 2x2 Bayer matrix dithering method is a simple ordered dithering technique based on a 2x2 matrix.">2x2 Bayer Matrix (wip)</option>
-            <option value="bayerMatrix4" title="The 4x4 Bayer matrix dithering method is an ordered dithering technique based on a 4x4 matrix. It provides better results compared to the 2x2 matrix but requires more computational resources.">4x4 Bayer Matrix (wip)</option>
-            <option value="bayerMatrix8" title="The 8x8 Bayer matrix dithering method is an ordered dithering technique based on a 8x8 matrix. It offers even better results than the 4x4 matrix but requires higher computational resources.">8x8 Bayer Matrix (wip)</option>
-            <option value="bayerMatrix16" title="The 16x16 Bayer matrix dithering method is an ordered dithering technique based on a 16x16 matrix. It provides high-quality dithering results but demands significant computational power.">16x16 Bayer Matrix (wip)</option>
-            <option value="none" title="Selecting 'None' disables dithering, leaving the image unchanged.">none</option>
-        </select>
-    </div>
-    
-    <div id="hoverBox" style="display: none; position: absolute; background-color: #f9f9f9; border: 1px solid #ccc; padding: 10px;">
-        <p id="hoverDescription"></p>
-    </div>
-    
-    <lable for="varName" style="color: white;">variable name:</lable>
-    <input type="text" id="varName" placeholder="Enter Name for sprite" value="NewImage">
-    <br>
-    <button onclick="processImage()">Convert and Resize</button>
-    <button onclick="copyToClipboard()">Copy Image String</button>
-    <button id="downloadButton">Download Image</button>
-    <div class="progress-container">
-        <div id="progressBar" class="progress-bar"></div>
-    </div>
+    <button style="none" onclick="goToeasterEgg()" id="goToEgg">Go to Congrats Page</button>
     <div class="image-container">
-        <div class="color-input-container">
-            <input type="color" id="colorInput">
-            <button onclick="addColor()">Add Color</button>
-            <ul id="colorList"></ul>
-        </div>
-      
         <img id="outputImage" src="" alt="Output Image">
+    </div><br>
+    <div class="container">
+        <div class="box">
+            <h3>Image Settings</h3>
+            <input type="file" id="fileInput" accept="image/*">
+            <button onclick="processImage()">Convert and Resize</button>
+            <label for="sizeSettings" style="color: white;">Size Settings:</label>
+            <select id="sizeSettings">
+                <option value="scale">Scale</option>
+                <option value="pixelGoal">Pixel Goal</option>
+                <option value="widthHeight">Width & Height</option>
+            </select>
+            <div id="scaleOptions">
+                <input type="number" value="1" id="scaleFactor" placeholder="Enter scale factor">
+            </div>
+            <div id="pixelGoalOptions" style="display: none;">
+                <input type="number" value="19200" id="maxPixels" placeholder="Enter a max pixel count">
+            </div>
+            <div id="widthHeightOptions" style="display: none;">
+                <input type="number" value="160" id="width" placeholder="Enter width">
+                <input type="number" value="120" id="height" placeholder="Enter height">
+            </div>
+        </div>
+        <div class="box">
+            <h3>Filter Settings</h3>
+            <label for="Filters" style="color: white">Filter Options:</label>
+            <select id="Filters">
+                <option value="none">None</option>
+                <option value="GrayScale">Grayscale</option>
+                <option value="custom">Custom</option>
+                <option value="noise">Noise</option>
+                <option value="blur">Blur</option>
+                <option value="unBlur">UnBlur</option>
+                <option value="invert">Invert</option>
+                <option value="median">Median (DeNoiser)</option>
+            </select>
+            <button onclick="addFilter()">Add Filter</button>
+            <button onclick="resetFilter()">Reset Filters</button>
+            <div id="customFilter" style="display: none;">
+                <input type="number" id="red" placeholder="Red" min="0" max="255">
+                <input type="number" id="green" placeholder="Green" min="0" max="255">
+                <input type="number" id="blue" placeholder="Blue" min="0" max="255">
+                <input type="color" id="colorPicker">
+                <button onclick="updateColors()">Set</button>
+            </div>
+            <div id="RadiusFilter" style="display: none;">
+                <input type="number" id="radius" placeholder="Radius">
+            </div>
+            <div id="NoiseFilter" style="display: none;">
+                <input type="number" id="noiseLevel" placeholder="Enter Noise Level">
+            </div>
+            <div id="blurFilter" style="display: none;">
+                <input type="number" id="blurPower" placeholder="Enter Blur Power">
+            </div>
+        </div>
+        <div class="box">
+            <h3>Dithering Options</h3>
+            <label for="ditheringOptions" style="color: white;">Dithering Options:</label>
+            <select id="ditheringOptions">
+                <option value="floyd">Floyd-Steinberg</option>
+                <option value="falseFloyd">False Floyd-Steinberg</option>
+                <option value="stucki">Stucki Dithering</option>
+                <option value="Burkes">Burkes Dithering</option>
+                <option value="nearest">Nearest Color</option>
+                <option value="bayerMatrix2">2x2 Bayer Matrix (WIP)</option>
+                <option value="bayerMatrix4">4x4 Bayer Matrix (WIP)</option>
+                <option value="bayerMatrix8">8x8 Bayer Matrix (WIP)</option>
+                <option value="bayerMatrix16">16x16 Bayer Matrix (WIP)</option>
+                <option value="none">None</option>
+            </select>
+            <br>
+            <lable>Error Multiplier</lable>
+            <input type="number" value="1" placeholder="Error Multiplier" id="err_multi">
+        </div>
+        <div class="box">
+            <h3>Variable and Conversion</h3>
+            <label for="varName" style="color: white;">Variable Name:</label>
+            <input type="text" id="varName" placeholder="Enter Name for Sprite" value="NewImage">
+            <button onclick="copyToClipboard()">Copy Image for Makecode arcade</button>
+            <button id="downloadButton">Download Image as PNG</button>
+            <h4>Convert Makecode Image into PNG </h4>
+            <input type="text" id="makeCodeInput" placeholder="Enter MakeCode Image">
+            <button onclick="convertAndDownload()">Convert and Download</button>
+            <br>
+            <h4 id="conv_time">Conversion Time: none</h4>
+        </div>
+        <div class="box color-list-box">
+            <h3>Color Management</h3>
+            <div class="color-input-container">
+                <input type="color" id="colorInput">
+                <button onclick="addColor()">Add Color</button>
+                <ul id="colorList"></ul>
+            </div>
+            <div id="colorListSettings">
+                <label for="colorLists" style="color: white;">Color Lists:</label>
+                <select id="colorLists">
+                    <option value="default">Default</option>
+                </select>
+                <button onclick="saveColorList()">Save</button>
+                <button onclick="loadColorList()">Load</button>
+                <button onclick="removeColorList()">Remove</button>
+            </div>
+        </div>
     </div>
-    <input type="text" id="makeCodeInput" placeholder="Enter MakeCode image">
-    <button onclick="convertAndDownload()">Convert and Download</button>
-
-    <div id="colorListSettings">
-        <label for="colorLists" style="color: white;">Color Lists:</label>
-        <select id="colorLists">
-            <option value="default">Default</option>
-        </select>
-        <button onclick="saveColorList()">Save</button>
-        <button onclick="loadColorList()">Load</button>
-        <button onclick="removeColorList()">remove</button>
-
-    </div>
-    <script src="scripts.js"></script>
-    
 </body>
 </html>
