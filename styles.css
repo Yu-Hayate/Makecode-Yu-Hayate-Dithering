@@ -1,63 +1,52 @@
 body {
-    background-color: #233; /* Dark background color */
-    color: rgb(49, 60, 60); /* Text color */
-    padding: 22px;
+    background-color: #233;
+    color: rgb(49, 60, 60);
+    padding: 2.5%;
 }
 .hits-link {
     position: fixed;
-    top: 60px; /* Adjust this value to your preference */
-    right: -4.5px;
-    z-index: 999; /* Ensure it appears above other content */
+    top: 70px; 
+    right: 6px;
+    z-index: 999;
+    width: 120px
 }
 .version {
     position: fixed;
-    top: 10px;
-    right: 10px;
+    top: 1.3%;
+    right: 1.3%;
     background-color: #344;
-    padding: 6px 12px;
-    border: 2px solid #bcc;
+    padding: 0.9% 1.1%;
+    border: 0.2% solid #bcc;
     border-radius: 6px;
     font-family: Arial, sans-serif;
     font-size: 27px;
     color: #eff;
 }
-.image-container {
-    display: flex;
-    align-items: flex-start;
-    background-color: rgba(255, 255, 255, 0.1); /* Lighter background for image container */
-    padding: 20px;
-    border-radius: 10px; /* Rounded corners */
-}
-
 img {
     display: block;
     margin: 0;
     width: 57%;
     height: auto;
-    object-fit: cover; /* This ensures the image covers the entire container without distortion */
-    image-rendering: pixelated; /* Maintains the pixelated effect */
+    object-fit: cover;
+    image-rendering: pixelated;
 }
-
 button {
     margin: 5px;
-    padding: 8px 10px; /* Adjust padding for better button appearance */
+    padding: 8px 10px;
     border: none;
     border-radius: 5px;
-    background-color: #535353; /* Green color */
+    background-color: #535353;
     color: white;
     font-size: 13px;
     cursor: pointer;
 }
-
 button:hover {
-    background-color: #45a049; /* Darker green color on hover */
+    background-color: #45a049;
 }
-
 input[type="number"],
 select {
     margin-bottom: 10px;
 }
-
 input[type="number"],
 select,
 input[type="text"] {
@@ -67,14 +56,12 @@ input[type="text"] {
     background-color: rgba(255, 255, 255, 0.1);
     color: #ebebeb;
 }
-
 input[type="number"]:focus,
 select:focus,
 input[type="text"]:focus {
     outline: none;
     border-color: #b9b9b98c;
 }
-
 select {
     margin-bottom: 10px;
     padding: 5px;
@@ -83,29 +70,60 @@ select {
     background-color: rgba(255, 255, 255, 0.1);
     color: #ebebeb;
 }
-
 select:focus {
     outline: none;
     border-color: #4242428c;
 }
-
-/* Adjust dropdown color */
 select option {
-    background-color: #444; /* Darker background color */
-    color: #ebebeb; /* Lighter text color */
+    background-color: #444;
+    color: #ebebeb;
 }
-
 label {
     font-weight: bold;
     margin-bottom: 5px;
     display: block;
 }
 button.enabled {
-    background-color: green; /* Set enabled color */
+    background-color: green;
     color: white;
 }
-
 button.disabled {
-    background-color: red; /* Set disabled color */
+    background-color: red;
     color: white;
+}
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+h3 {
+    margin-top: 0;
+}
+li button {
+   height: 20px;
+   padding: 2px 5px;
+   margin: 3px;
+}
+.box {
+    background-color: #344;
+    padding: 1%; /* Equal padding for all elements */
+    border-radius: 10px;
+    border: 1px solid #666;
+    color: white;
+    width: calc((75% - 7%) / 3); /* Adjusted width considering padding */
+}
+.box.color-list-box {
+    padding: 1%;
+    width: calc(75% - 24% - 2%); /* Adjusted to fit next to one .box */
+}
+.image-container {
+    display: flex;
+    align-items: flex-start;
+    background-color: #344;
+    padding: 1%; /* Same padding for consistency */
+    border-radius: 10px;
+    border: 1px solid #666;
+    color: white;
+    width: 75%; /* Stays at 75% */
 }
