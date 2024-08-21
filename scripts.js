@@ -2,6 +2,7 @@ let colors = rgbToHex([[255, 255, 255],[255, 33, 33], [255, 147, 196], [255, 129
 let enabledColorsList = new Array(colors.length).fill(true);
 let filterList = [];
 let filterEffectPowerList = [];
+let time = 0;
 renderColors();
 const easterEggHTMLBtnDiv = document.getElementById('goToEgg');
 let currentValue = Number(localStorage.getItem('easterEgg')) || 0;
@@ -17,9 +18,9 @@ function updateMultiplier() {
 function processImage() {
     const convTimeElement = document.getElementById('conv_time');
     if (convTimeElement) {
-        convTimeElement.textContent = `Conversion Time: Calculating...`;
+        convTimeElement.textContent = 'Conversion Time: Calculating...';
     }
-    const start = performance.now(); // Start time
+    const start = performance.now();
     updateMultiplier()
     const fileInput = document.getElementById('fileInput');
     const inputElement = document.getElementById('scaleFactor');
@@ -73,9 +74,10 @@ function processImage() {
     const downloadButton = document.getElementById('downloadButton');
     downloadButton.addEventListener('click', downloadImage);
     const end = performance.now(); // End time
-    const time = end-start;
+    time = end-start;
+    time = Math.round(time*1e+10)/1e+10
     if (convTimeElement) {
-        convTimeElement.textContent = `Conversion Time: ${Math.round(time*1e+10)/1e+10}ms`;
+        convTimeElement.textContent = 'Conversion Time: '+time+'ms';
     }
     
 }
@@ -156,60 +158,39 @@ function medianFilter(context, w, h, radius) {
     const imgData = context.getImageData(0, 0, w, h);
     const data = imgData.data;
     const newData = new Uint8ClampedArray(data.length); // Create a new array to store modified data
-
-    // Iterate over each pixel
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
-            // Get the index of the current pixel
             const index = (y * w + x) * 4;
             const redValues = [];
             const greenValues = [];
             const blueValues = [];
-
-            // Iterate over the pixels in the neighborhood
             for (let j = -radius; j <= radius; j++) {
                 for (let i = -radius; i <= radius; i++) {
-                    // Get the coordinates of the current neighbor pixel
                     const nx = x + i;
                     const ny = y + j;
-
-                    // Ensure the neighbor pixel is within the image bounds
                     if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-                        // Get the index of the neighbor pixel
                         const neighborIndex = (ny * w + nx) * 4;
-
-                        // Collect color values from the neighborhood
                         redValues.push(data[neighborIndex]);
                         greenValues.push(data[neighborIndex + 1]);
                         blueValues.push(data[neighborIndex + 2]);
                     }
                 }
             }
-
-            // Sort the color values
             redValues.sort((a, b) => a - b);
             greenValues.sort((a, b) => a - b);
             blueValues.sort((a, b) => a - b);
-
-            // Get the median color values
             const medianRed = redValues[Math.floor(redValues.length / 2)];
             const medianGreen = greenValues[Math.floor(greenValues.length / 2)];
             const medianBlue = blueValues[Math.floor(blueValues.length / 2)];
-
-            // Assign the median color values to the pixel
             newData[index] = medianRed;
             newData[index + 1] = medianGreen;
             newData[index + 2] = medianBlue;
-            newData[index + 3] = data[index + 3]; // Preserve alpha channel
+            newData[index + 3] = data[index + 3]; 
         }
     }
-
-    // Copy the modified data back to the original data array
     for (let i = 0; i < data.length; i++) {
         data[i] = newData[i];
     }
-
-    // Put the modified image data back to the canvas
     context.putImageData(imgData, 0, 0);
 }
 
@@ -452,13 +433,16 @@ function noneDithering(context,w,h) {
         MakecodeImg.push(row);
     } 
     imageString = ' = img\`\n';
-    for (let rows of MakecodeImg) {
-      for (let pixel of rows) {
-        imageString += pixel.toString(16) + " "; 
-      }
-      imageString += "\n";
+    for (let i = 0; i < MakecodeImg.length; i++) {
+        let rows = MakecodeImg[i];
+        for (let j = 0; j < rows.length; j++) {
+            let pixel = rows[j];
+            imageString += pixel.toString(16) + " ";
+        }
+        imageString += "\n";
     }
-    imageString += "`"; 
+    imageString += "`";
+
 }
 function brayerDithering2x2(context, w, h) {
     const ditherMatrix = [
@@ -489,9 +473,11 @@ function brayerDithering2x2(context, w, h) {
         }
         MakecodeImg.push(row);
     }
-    let imageString = ' = img`\n';
-    for (let rows of MakecodeImg) {
-        for (let pixel of rows) {
+    imageString = ' = img\`\n';
+    for (let i = 0; i < MakecodeImg.length; i++) {
+        let rows = MakecodeImg[i];
+        for (let j = 0; j < rows.length; j++) {
+            let pixel = rows[j];
             imageString += pixel.toString(16) + " ";
         }
         imageString += "\n";
@@ -529,9 +515,11 @@ function brayerDithering4x4(context, w, h) {
         }
         MakecodeImg.push(row);
     }
-    let imageString = ' = img`\n';
-    for (let rows of MakecodeImg) {
-        for (let pixel of rows) {
+    imageString = ' = img\`\n';
+    for (let i = 0; i < MakecodeImg.length; i++) {
+        let rows = MakecodeImg[i];
+        for (let j = 0; j < rows.length; j++) {
+            let pixel = rows[j];
             imageString += pixel.toString(16) + " ";
         }
         imageString += "\n";
@@ -573,9 +561,11 @@ function brayerDithering8x8(context, w, h) {
         }
         MakecodeImg.push(row);
     }
-    let imageString = ' = img`\n';
-    for (let rows of MakecodeImg) {
-        for (let pixel of rows) {
+    imageString = ' = img\`\n';
+    for (let i = 0; i < MakecodeImg.length; i++) {
+        let rows = MakecodeImg[i];
+        for (let j = 0; j < rows.length; j++) {
+            let pixel = rows[j];
             imageString += pixel.toString(16) + " ";
         }
         imageString += "\n";
@@ -641,9 +631,11 @@ function brayerDithering16x16(context, w, h) {
         }
         MakecodeImg.push(row);
     }
-    let imageString = ' = img`\n';
-    for (let rows of MakecodeImg) {
-        for (let pixel of rows) {
+    imageString = ' = img\`\n';
+    for (let i = 0; i < MakecodeImg.length; i++) {
+        let rows = MakecodeImg[i];
+        for (let j = 0; j < rows.length; j++) {
+            let pixel = rows[j];
             imageString += pixel.toString(16) + " ";
         }
         imageString += "\n";
@@ -671,11 +663,13 @@ function ClosesColorDithering(context, w, h) {
         MakecodeImg.push(row);
     }
     imageString = ' = img\`\n';
-    for (let rows of MakecodeImg) {
-      for (let pixel of rows) {
-        imageString += pixel.toString(16) + " "; 
-      }
-      imageString += "\n";
+    for (let i = 0; i < MakecodeImg.length; i++) {
+        let rows = MakecodeImg[i];
+        for (let j = 0; j < rows.length; j++) {
+            let pixel = rows[j];
+            imageString += pixel.toString(16) + " ";
+        }
+        imageString += "\n";
     }
     imageString += "`"; 
     context.putImageData(imgData, 0, 0);
@@ -729,13 +723,15 @@ function floydSteinbergDithering(context, w, h) {
         MakecodeImg.push(row);
     }
     imageString = ' = img\`\n';
-    for (let rows of MakecodeImg) {
-      for (let pixel of rows) {
-        imageString += pixel.toString(16) + " "; 
-      }
-      imageString += "\n";
+    for (let i = 0; i < MakecodeImg.length; i++) {
+        let rows = MakecodeImg[i];
+        for (let j = 0; j < rows.length; j++) {
+            let pixel = rows[j];
+            imageString += pixel.toString(16) + " ";
+        }
+        imageString += "\n";
     }
-    imageString += "`"; 
+    imageString += "`";
     context.putImageData(imgData, 0, 0);
 }
 function FalseFloydSteinbergDithering(context, w, h) {
@@ -780,13 +776,15 @@ function FalseFloydSteinbergDithering(context, w, h) {
         MakecodeImg.push(row);
     }
     imageString = ' = img\`\n';
-    for (let rows of MakecodeImg) {
-      for (let pixel of rows) {
-        imageString += pixel.toString(16) + " "; 
-      }
-      imageString += "\n";
+    for (let i = 0; i < MakecodeImg.length; i++) {
+        let rows = MakecodeImg[i];
+        for (let j = 0; j < rows.length; j++) {
+            let pixel = rows[j];
+            imageString += pixel.toString(16) + " ";
+        }
+        imageString += "\n";
     }
-    imageString += "`"; 
+    imageString += "`";
     context.putImageData(imgData, 0, 0);
 }
 function stuckiDithering(context, w, h) {
@@ -894,13 +892,15 @@ function stuckiDithering(context, w, h) {
         MakecodeImg.push(row);
     }
     imageString = ' = img\`\n';
-    for (let rows of MakecodeImg) {
-      for (let pixel of rows) {
-        imageString += pixel.toString(16) + " "; 
-      }
-      imageString += "\n";
+    for (let i = 0; i < MakecodeImg.length; i++) {
+        let rows = MakecodeImg[i];
+        for (let j = 0; j < rows.length; j++) {
+            let pixel = rows[j];
+            imageString += pixel.toString(16) + " ";
+        }
+        imageString += "\n";
     }
-    imageString += "`"; 
+    imageString += "`";
     context.putImageData(imgData, 0, 0);
 }
 function BurkesDithering(context, w, h) {
@@ -974,13 +974,15 @@ function BurkesDithering(context, w, h) {
         MakecodeImg.push(row);
     }
     imageString = ' = img\`\n';
-    for (let rows of MakecodeImg) {
-      for (let pixel of rows) {
-        imageString += pixel.toString(16) + " "; 
-      }
-      imageString += "\n";
+    for (let i = 0; i < MakecodeImg.length; i++) {
+        let rows = MakecodeImg[i];
+        for (let j = 0; j < rows.length; j++) {
+            let pixel = rows[j];
+            imageString += pixel.toString(16) + " ";
+        }
+        imageString += "\n";
     }
-    imageString += "`"; 
+    imageString += "`";
     context.putImageData(imgData, 0, 0);
 }
 function InvertFilter(context, w, h) {
