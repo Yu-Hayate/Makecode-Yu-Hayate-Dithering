@@ -9,7 +9,18 @@ easterEggHTMLBtnDiv.style.display = 'none';
 if (currentValue >= 1000) {
     easterEggHTMLBtnDiv.style.display = 'block';
 }
+let multiplier = 1;
+
+function updateMultiplier() {
+    multiplier = parseFloat(document.getElementById('err_multi').value) || 1;
+}
 function processImage() {
+    const convTimeElement = document.getElementById('conv_time');
+    if (convTimeElement) {
+        convTimeElement.textContent = `Conversion Time: Calculating...`;
+    }
+    const start = performance.now(); // Start time
+    updateMultiplier()
     const fileInput = document.getElementById('fileInput');
     const inputElement = document.getElementById('scaleFactor');
     const scaleFactor = parseFloat(inputElement.value);
@@ -61,6 +72,12 @@ function processImage() {
     reader.readAsDataURL(fileInput.files[0]);
     const downloadButton = document.getElementById('downloadButton');
     downloadButton.addEventListener('click', downloadImage);
+    const end = performance.now(); // End time
+    const time = end-start;
+    if (convTimeElement) {
+        convTimeElement.textContent = `Conversion Time: ${Math.round(time*1e+10)/1e+10}ms`;
+    }
+    
 }
 function applyDithering(context, w ,h,ditheringType) {
     if (ditheringType == 'none') {
@@ -1104,35 +1121,11 @@ function unblurImage(context, w, h) {
     context.putImageData(imgData, 0, 0);
 }
 
-function findClosest(oldpixel, palArr) {
-    return palArr.reduce((closest, current, idx) => {
-        const [r, g, b] = current;
-        const dist = (oldpixel[0] - r) ** 2 + (oldpixel[1] - g) ** 2 + (oldpixel[2] - b) ** 2;
-        if (dist < closest.dist) {
-            closest.dist = dist;
-            closest.color = current;
-        }
-        return closest;
-    }, { dist: Infinity, color: null }).color;
-}
-function getQuantErr(oldpixel, newpixel) {
-    oldpixel[0] -= newpixel[0];
-    oldpixel[1] -= newpixel[1];
-    oldpixel[2] -= newpixel[2];
-    return oldpixel;
-}
-function applyErrBitShift(pixel, error, factor,div) {
-    pixel[0] += (error[0] * factor)>>div;
-    pixel[1] += (error[1] * factor)>>div;
-    pixel[2] += (error[2] * factor)>>div;
-    return pixel;
-}     
-function applyErrDiv(pixel, error, factor,div) {
-    pixel[0] += (error[0] * factor)/div;
-    pixel[1] += (error[1] * factor)/div;
-    pixel[2] += (error[2] * factor)/div;
-    return pixel;
-}     
+function findClosest(t, s){let e=s[0],h=Math.abs(t[0]-e[0])+Math.abs(t[1]-e[1])+Math.abs(t[2]-e[2]);for(let a=1;a<s.length;a++){var[b,r,M]=s[a],M=Math.abs(t[0]-b)+Math.abs(t[1]-r)+Math.abs(t[2]-M);M<h&&(h=M,e=s[a])}return e}
+function getQuantErr(r,t){return r[0]-=t[0],r[1]-=t[1],r[2]-=t[2],r}
+function applyErrBitShift(r,t,i,n){i*=multiplier;return r[0]+=t[0]*i>>n,r[1]+=t[1]*i>>n,r[2]+=t[2]*i>>n,r}
+function applyErrDiv(r,t,i,n){i*=multiplier,n=1/n;return r[0]+=t[0]*i*n,r[1]+=t[1]*i*n,r[2]+=t[2]*i*n,r}
+
 function addColor() {
     const colorInput = document.getElementById('colorInput');
     const color = colorInput.value.trim();
