@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Congratulations!</title>
+    <link rel="stylesheet" href="../css/styles.css">
+
 </head>
 <body>
-    <div id="congratsMessage"></div>
+    <h2 style="color: #888" id="congratsMessage"></h2>
 
     <script>
         window.onload = function() {
@@ -14,20 +16,11 @@
             const congratsMessage = document.getElementById('congratsMessage');
 
             if (clicks < 11000) {
-                congratsMessage.textContent = `Congrats! You wasted your time clicking the version ${clicks} times! Btw! a new and Cooler website for this is comming soon!`;
+                congratsMessage.textContent = `Congrats! You wasted your time clicking the version ${clicks} times!`;
             } else {
-                congratsMessage.textContent = `why... you clicked the version ${clicks} times... breh (\u2299_\u2299)\uff1f`;
+                congratsMessage.textContent = `why... you clicked the version ${clicks} times... Lmao`;
             }
         };
-    </script>
-    <script>
-        let docTitle = document.title;
-        window.addEventListener("blur", () => {
-        document.title = "come back \ud83e\udd7a";
-        });
-        window.addEventListener("focus", () => {
-        document.title = docTitle;
-        });
     </script>
 </body>
 </html>
