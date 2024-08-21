@@ -39,6 +39,7 @@ button {
     color: white;
     font-size: 13px;
     cursor: pointer;
+    font-family: "roboto", sans-serif;
 }
 button:hover {
     background-color: #45a049;
@@ -99,6 +100,10 @@ button.disabled {
 }
 h3 {
     margin-top: 0;
+    font-family: "Bahnschrift", sans-serif;
+}
+h4 {
+    font-family: "Futura", sans-serif;
 }
 li button {
    height: 20px;
@@ -107,23 +112,32 @@ li button {
 }
 .box {
     background-color: #344;
-    padding: 1%; /* Equal padding for all elements */
+    padding: 1%;
     border-radius: 10px;
     border: 1px solid #666;
     color: white;
-    width: calc((75% - 7%) / 3); /* Adjusted width considering padding */
+    width: calc((75% - 7%) / 3);
 }
 .box.color-list-box {
     padding: 1%;
-    width: calc(75% - 24% - 2%); /* Adjusted to fit next to one .box */
+    width: calc(75% - 24% - 2%);
 }
 .image-container {
     display: flex;
     align-items: flex-start;
     background-color: #344;
-    padding: 1%; /* Same padding for consistency */
+    padding: 1%;
     border-radius: 10px;
     border: 1px solid #666;
     color: white;
-    width: 75%; /* Stays at 75% */
+    width: 75%;
+}
+#colorList li {
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start;
+}
+#colorList canvas {
+    border-radius: 5px;
+    margin-right: 4px;
 }
