@@ -193,19 +193,19 @@ function medianFilter(context, w, h, radius) {
     }
     context.putImageData(imgData, 0, 0);
 }
-
-var defaultColorList = {
-    color: rgbToHex([[255, 255, 255],[255, 33, 33], [255, 147, 196], [255, 129, 53], [255, 246, 9], [36, 156, 163], [120, 220, 82], [0, 63, 173], [135, 242, 255], [142, 46, 196], [164, 131, 159], [92, 64, 108], [229, 205, 196], [145, 70, 61], [0, 0, 0]]),
-    enabledColorsList: [true,true,true,true,true,true,true,true,true,true,true,true,true,true,true]
+const listKey = '$I';
+const defaultColorList = {
+    color: rgbToHex([[255, 255, 255], [255, 33, 33], [255, 147, 196], [255, 129, 53], [255, 246, 9], [36, 156, 163], [120, 220, 82], [0, 63, 173], [135, 242, 255], [142, 46, 196], [164, 131, 159], [92, 64, 108], [229, 205, 196], [145, 70, 61], [0, 0, 0]]),
+    enabledColorsList: [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true]
 };
-    function saveColorList() {
+function saveColorList() {
     var colorListName = prompt("Enter a name for the color list:");
     if (colorListName) {
         var savedData = {
             color: colors,
             enabledColorsList: enabledColorsList
         };
-        localStorage.setItem(colorListName, JSON.stringify(savedData));
+        localStorage.setItem(listKey + colorListName, JSON.stringify(savedData));
         var colorListsSelect = document.getElementById('colorLists');
         var option = document.createElement("option");
         option.text = colorListName;
@@ -216,8 +216,9 @@ var defaultColorList = {
 }
 function loadColorList() {
     var selectedColorListName = document.getElementById('colorLists').value;
-    if (selectedColorListName !== 'default') {
-        var savedData = localStorage.getItem(selectedColorListName);
+    if (selectedColorListName != listKey+ "Default") {
+        var fullKey = listKey + selectedColorListName;
+        var savedData = localStorage.getItem(fullKey);
         if (savedData) {
             savedData = JSON.parse(savedData);
             colors = savedData.color;
@@ -227,14 +228,13 @@ function loadColorList() {
         colors = defaultColorList.color;
         enabledColorsList = defaultColorList.enabledColorsList;
     }
-    console.log(colors);
-    console.log(enabledColorsList);
     renderColors();
 }
 function removeColorList() {
     var selectedColorListName = document.getElementById('colorLists').value;
-    if (selectedColorListName !== 'default') {
-        localStorage.removeItem(selectedColorListName);
+    if (selectedColorListName != listKey + "Default") {
+        var fullKey = listKey + selectedColorListName;
+        localStorage.removeItem(fullKey);
         var colorListsSelect = document.getElementById('colorLists');
         var options = colorListsSelect.options;
         for (var i = 0; i < options.length; i++) {
@@ -243,19 +243,32 @@ function removeColorList() {
                 break;
             }
         }
-
-        renderColors();
+        if (colorListsSelect.options.length === 0) {
+            colors = defaultColorList.color;
+            enabledColorsList = defaultColorList.enabledColorsList;
+            renderColors();
+        }
     }
 }
 window.onload = function() {
     var colorListsSelect = document.getElementById('colorLists');
+    colorListsSelect.innerHTML = '';
+    var defaultOption = document.createElement("option");
+    defaultOption.text = "Default";
+    defaultOption.value = listKey + "Default";
+    colorListsSelect.add(defaultOption);
     for (var i = 0; i < localStorage.length; i++) {
         var key = localStorage.key(i);
-        var option = document.createElement("option");
-        option.text = key;
-        option.value = key;
-        colorListsSelect.add(option);
+        if (key.startsWith(listKey)) {
+            var listName = key.substring(listKey.length);
+            var option = document.createElement("option");
+            option.text = listName;
+            option.value = listName;
+            colorListsSelect.add(option);
+        }
     }
+
+    renderColors();
 }
 function downloadImage() {
         let varName = document.getElementById('varName').value;
@@ -1087,12 +1100,10 @@ function unblurImage(context, w, h) {
     const imgData = context.getImageData(0, 0, w, h);
     const data = imgData.data;
     const newData = new Uint8ClampedArray(data.length); // Create a new array to store modified data
-
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
             const index = (y * w + x) * 4;
             const PixelColor = [0, 0, 0];
-            
             for (let ky = -1; ky <= 1; ky++) {
                 for (let kx = -1; kx <= 1; kx++) {
                     const PixelMulty = unblurMatrix[ky + 1][kx + 1];
@@ -1108,18 +1119,15 @@ function unblurImage(context, w, h) {
                     }
                 }
             }
-            
             newData[index] = PixelColor[0];
             newData[index + 1] = PixelColor[1];
             newData[index + 2] = PixelColor[2];
             newData[index + 3] = data[index + 3]; // Preserve alpha channel
         }
     }
-    
     for (let i = 0; i < data.length; i++) {
         data[i] = newData[i];
     }
-    
     context.putImageData(imgData, 0, 0);
 }
 
@@ -1157,7 +1165,6 @@ function moveUp(index) {
         enabledColorsList[index] = enableListSwitch[1]
         enabledColorsList[index-1] = enableListSwitch[0]
         renderColors();
-
     }
 }
 function moveDown(index) {  
@@ -1175,6 +1182,7 @@ function renderColors() {
     const colorList = document.getElementById('colorList');
     colorList.innerHTML = '';
     colors.forEach((color, index) => {
+        const hexIndex = index.toString(16).toUpperCase();
         const li = document.createElement('li');
         li.style.position = 'relative';
         li.style.marginBottom = '5px';
@@ -1183,7 +1191,7 @@ function renderColors() {
         colorSpan.style.position = 'absolute';
         colorSpan.style.top = '50%';
         colorSpan.style.left = '50%';
-        colorSpan.style.transform = 'translate(-150px, -50%)';
+        colorSpan.style.transform = 'translate(-' + (135-hexIndex.length*6) +'px, -50%)';
         colorSpan.style.color = getTextColor(color);
         colorSpan.style.zIndex = '1';
         const canvas = document.createElement('canvas');
@@ -1198,8 +1206,10 @@ function renderColors() {
         canvasContainer.style.position = 'relative';
         canvasContainer.style.display = 'flex';
         canvasContainer.style.alignItems = 'center';
-        canvasContainer.appendChild(canvas);
-        canvasContainer.appendChild(colorSpan);
+        const indexSpan = document.createElement('span');
+        indexSpan.textContent = hexIndex;
+        indexSpan.style.marginRight = '30px';
+        indexSpan.style.color = '#fff';
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
         removeBtn.addEventListener('click', () => removeColor(index));
@@ -1216,6 +1226,9 @@ function renderColors() {
         enableBtn.textContent = enabledColorsList[index] ? 'Disable' : 'Enable';
         enableBtn.classList.add(enabledColorsList[index] ? 'enabled' : 'disabled');
         enableBtn.addEventListener('click', () => enableColor(index));
+        canvasContainer.appendChild(indexSpan);
+        canvasContainer.appendChild(canvas);
+        canvasContainer.appendChild(colorSpan);
         canvasContainer.appendChild(removeBtn);
         canvasContainer.appendChild(changeColorBtn);
         canvasContainer.appendChild(moveColorUpBtn);
@@ -1285,7 +1298,7 @@ function resetFilter() {
     filterList = [];
     filterEffectPowerList = [];
 }
- document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
     var select = document.getElementById("ditheringOptions");
     var hoverBox = document.getElementById("hoverBox");
     var hoverDescription = document.getElementById("hoverDescription");
@@ -1302,4 +1315,7 @@ function resetFilter() {
     select.addEventListener("mouseout", function() {
         hoverBox.style.display = "none";
     });
+});
+document.getElementById('fileInput').addEventListener('change', function(event) {
+    processImage();
 });
