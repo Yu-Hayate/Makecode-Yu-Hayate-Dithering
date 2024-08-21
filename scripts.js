@@ -1176,41 +1176,61 @@ function renderColors() {
     colorList.innerHTML = '';
     colors.forEach((color, index) => {
         const li = document.createElement('li');
-        const listIndex = index + 1;
+        li.style.position = 'relative';
+        li.style.marginBottom = '5px';
         const colorSpan = document.createElement('span');
-        colorSpan.textContent = color.toUpperCase() + ', ' + listIndex.toString(16).toUpperCase();
-        colorSpan.style.color = '#ffffff'; // Set text color to white (brighter)
-        li.appendChild(colorSpan);
+        colorSpan.textContent = color.toUpperCase();
+        colorSpan.style.position = 'absolute';
+        colorSpan.style.top = '50%';
+        colorSpan.style.left = '50%';
+        colorSpan.style.transform = 'translate(-150px, -50%)';
+        colorSpan.style.color = getTextColor(color);
+        colorSpan.style.zIndex = '1';
         const canvas = document.createElement('canvas');
-        canvas.width = 50;
+        canvas.width = 80;
         canvas.height = 20;
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = color;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        li.appendChild(canvas);
+        canvas.style.borderRadius = '5px';
+        canvas.style.zIndex = '0';
+        const canvasContainer = document.createElement('div');
+        canvasContainer.style.position = 'relative';
+        canvasContainer.style.display = 'flex';
+        canvasContainer.style.alignItems = 'center';
+        canvasContainer.appendChild(canvas);
+        canvasContainer.appendChild(colorSpan);
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
         removeBtn.addEventListener('click', () => removeColor(index));
-        li.appendChild(removeBtn);
         const changeColorBtn = document.createElement('button');
         changeColorBtn.textContent = 'Change';
         changeColorBtn.addEventListener('click', () => changeColor(index));
-        li.appendChild(changeColorBtn);
         const moveColorUpBtn = document.createElement('button');
         moveColorUpBtn.textContent = '\u2191';
         moveColorUpBtn.addEventListener('click', () => moveUp(index));
-        li.appendChild(moveColorUpBtn);
         const moveColorDownBtn = document.createElement('button');
         moveColorDownBtn.textContent = '\u2193';
         moveColorDownBtn.addEventListener('click', () => moveDown(index));
-        li.appendChild(moveColorDownBtn);
         const enableBtn = document.createElement('button');
         enableBtn.textContent = enabledColorsList[index] ? 'Disable' : 'Enable';
         enableBtn.classList.add(enabledColorsList[index] ? 'enabled' : 'disabled');
         enableBtn.addEventListener('click', () => enableColor(index));
-        li.appendChild(enableBtn);
+        canvasContainer.appendChild(removeBtn);
+        canvasContainer.appendChild(changeColorBtn);
+        canvasContainer.appendChild(moveColorUpBtn);
+        canvasContainer.appendChild(moveColorDownBtn);
+        canvasContainer.appendChild(enableBtn);
+        li.appendChild(canvasContainer);
         colorList.appendChild(li);
     });
+}
+function getTextColor(color) {
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+    const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return brightness < 128 ? 'white' : 'black';
 }
 function enableColor(index) {
     enabledColorsList[index] = !enabledColorsList[index]
