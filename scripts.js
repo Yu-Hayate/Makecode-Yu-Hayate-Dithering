@@ -1,86 +1,312 @@
-let colors = rgbToHex([[255, 255, 255],[255, 33, 33], [255, 147, 196], [255, 129, 53], [255, 246, 9], [36, 156, 163], [120, 220, 82], [0, 63, 173], [135, 242, 255], [142, 46, 196], [164, 131, 159], [92, 64, 108], [229, 205, 196], [145, 70, 61], [0, 0, 0]]);
+let colors = [
+    '#ffffff',  // white
+    '#ff2121',  // red
+    '#ff93c4',  // pink
+    '#ff8135',  // orange
+    '#fff609',  // yellow
+    '#249ca3',  // cyan
+    '#78dc52',  // green
+    '#003fad',  // blue
+    '#87f2ff',  // light-blue
+    '#8e2ec4',  // purple
+    '#a4839f',  // Dusty Purple
+    '#5c406c',  // Dark Purple
+    '#e5cdc4',  // Light Beige
+    '#91463d',  // brown
+    '#000000'   // black
+];
+function findNearestColor(t, s){let e=s[0],h=Math.abs(t[0]-e[0])+Math.abs(t[1]-e[1])+Math.abs(t[2]-e[2]);for(let a=1;a<s.length;a++){var[b,r,M]=s[a],M=Math.abs(t[0]-b)+Math.abs(t[1]-r)+Math.abs(t[2]-M);M<h&&(h=M,e=s[a])}return e}
+function getQuantErr(r,t){return r[0]-=t[0],r[1]-=t[1],r[2]-=t[2],r}
+function applyErrBitShift(r,t,i,n){i*=multiplier;return r[0]+=t[0]*i>>n,r[1]+=t[1]*i>>n,r[2]+=t[2]*i>>n,r}
+function applyErrDiv(r,t,i,n){i*=multiplier,n=1/n;return r[0]+=t[0]*i*n,r[1]+=t[1]*i*n,r[2]+=t[2]*i*n,r}
+
 let enabledColorsList = new Array(colors.length).fill(true);
 let filterList = [];
 let filterEffectPowerList = [];
 let time = 0;
-renderColors();
-const easterEggHTMLBtnDiv = document.getElementById('goToEgg');
-let currentValue = Number(localStorage.getItem('easterEgg')) || 0;
-easterEggHTMLBtnDiv.style.display = 'none';
-if (currentValue >= 1000) {
-    easterEggHTMLBtnDiv.style.display = 'block';
-}
 let multiplier = 1;
-
+const listKey = '$I';
+const defaultColorList = {
+    color: colors,
+    enabledColorsList: new Array(colors.length).fill(true)
+};
+renderColors();
 function updateMultiplier() {
     multiplier = parseFloat(document.getElementById('err_multi').value) || 1;
 }
+// Main function to process the image
+/**
+ * Process the image
+ */
 function processImage() {
-    const convTimeElement = document.getElementById('conv_time');
-    if (convTimeElement) {
-        convTimeElement.textContent = 'Conversion Time: Calculating...';
-    }
-    const start = performance.now();
-    updateMultiplier()
+    updateMultiplier();  // Update multiplier value
+
+    // Retrieve input elements
     const fileInput = document.getElementById('fileInput');
-    const inputElement = document.getElementById('scaleFactor');
-    const scaleFactor = parseFloat(inputElement.value);
+    const scaleFactorInput = document.getElementById('scaleFactor');
     const outputImage = document.getElementById('outputImage');
     const colorArr = document.getElementById('colorArr');
     const newWidth = document.getElementById('width').value;
     const newHeight = document.getElementById('height').value;
     const pixelGoal = document.getElementById('maxPixels').value;
     const ditheringOption = document.getElementById('ditheringOptions').value;
-    const reader = new FileReader;
-    var palArr;
+
+    // Initialize the file reader
+    const reader = new FileReader();
     reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
+            // Create a canvas to draw the image on
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-           if (document.getElementById('sizeSettings').value === 'widthHeight') {
-                if (!(newWidth == -1 && newHeight == -1)) {
-                    if (newWidth != -1) {
-                        canvas.width = newWidth;
-                    } else {
-                        canvas.width = img.width * (newHeight/img.height);
-                    }
-                    if (newHeight != -1) {
-                        canvas.height = newHeight;
-                    } else {
-                        canvas.height = img.height * (newWidth/img.width);
-                    }
-                } else {
-                    canvas.width = img.width
-                    canvas.height = img.height
-                }
-            } else if (document.getElementById('sizeSettings').value === 'pixelGoal') {
-                let newRes = resizePixelGoal(img.width, img.height, pixelGoal)
-                canvas.width = newRes[0];
-                canvas.height = newRes[1];
-            } else {
-                canvas.width = img.width * scaleFactor;
-                canvas.height = img.height * scaleFactor;
-            }
-            var imageString = '';
+
+            // Adjust canvas size based on settings
+            setCanvasSize(img, canvas, newWidth, newHeight, pixelGoal, scaleFactorInput.value);
+
+            // Draw the image and apply transformations
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            applyFliter(ctx, canvas.width, canvas.height)
-            applyDithering(ctx, canvas.width, canvas.height, ditheringOption)
+            applyFilter(ctx, canvas.width, canvas.height);
+            applyDithering(ctx, canvas.width, canvas.height, ditheringOption);
+
+            // Set the output image source to the processed canvas
             outputImage.src = canvas.toDataURL();
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(fileInput.files[0]);
+
+    // Add event listener to the download button
     const downloadButton = document.getElementById('downloadButton');
     downloadButton.addEventListener('click', downloadImage);
-    const end = performance.now(); // End time
-    time = end-start;
-    time = Math.round(time*1e+10)/1e+10
-    if (convTimeElement) {
-        convTimeElement.textContent = 'Conversion Time: '+time+'ms';
-    }
-    
+
+    // Calculate and display the conversion time
+
 }
+window.onload = function() {
+    var colorListsSelect = document.getElementById('colorLists');
+
+    colorListsSelect.innerHTML = '';
+    var defaultOption = document.createElement("option");
+    defaultOption.text = "Default";
+    defaultOption.value = listKey + "Default";
+    colorListsSelect.add(defaultOption);
+    for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        if (key.startsWith(listKey)) {
+            var listName = key.substring(listKey.length);
+            var option = document.createElement("option");
+            option.text = listName;
+            option.value = listName;
+            colorListsSelect.add(option);
+        }
+    }
+
+    renderColors();
+}
+document.getElementById('Filters').addEventListener('change', function() {
+    var selectedValue = this.value;
+    var customDiv = document.getElementById('customFilter');
+    var noiseDiv = document.getElementById('NoiseFilter');
+    var blurDiv = document.getElementById('blurFilter');
+    var radiusDiv = document.getElementById('RadiusFilter');
+    var sliderDiv = document.getElementById('BrightenFilter');
+    
+    // Hide all divs first
+    customDiv.style.display = 'none';
+    noiseDiv.style.display = 'none';
+    blurDiv.style.display = 'none';
+    radiusDiv.style.display = 'none';
+    sliderDiv.style.display = 'none'; // Fixed the typo here
+
+    // Show the selected div based on the selected value
+    if (selectedValue === 'custom') {
+        customDiv.style.display = 'block';
+    } else if (selectedValue === 'noise') {
+        noiseDiv.style.display = 'block';
+    } else if (selectedValue === 'blur') {
+        blurDiv.style.display = 'block';
+    } else if (selectedValue === 'median') {
+        radiusDiv.style.display = 'block';
+    } else if (selectedValue === 'Brighten') {
+        sliderDiv.style.display = 'block';
+    }
+
+    // Store the selected filter option
+    fliterOption = selectedValue;
+});
+document.getElementById('sizeSettings').addEventListener('change', function() {
+    var selectedOption = this.value;
+        document.getElementById('scaleOptions').style.display = 'none';
+        document.getElementById('pixelGoalOptions').style.display = 'none';
+        document.getElementById('widthHeightOptions').style.display = 'none';
+        document.getElementById(selectedOption + 'Options').style.display = 'block';
+}); 
+document.getElementById('red').addEventListener('input', function() {
+    changeColorPickerColor();
+});
+document.getElementById('green').addEventListener('input', function() {
+    changeColorPickerColor();
+});
+document.getElementById('blue').addEventListener('input', function() {
+    changeColorPickerColor();
+});
+document.addEventListener("DOMContentLoaded", function() {
+    var select = document.getElementById("ditheringOptions");
+    var hoverBox = document.getElementById("hoverBox");
+    var hoverDescription = document.getElementById("hoverDescription");
+    select.addEventListener("mouseover", function(event) {
+        if (event.target.tagName === "OPTION") {
+            var optionDescription = event.target.getAttribute("data-description");
+            var optionRect = event.target.getBoundingClientRect();
+             hoverDescription.textContent = optionDescription;
+             hoverBox.style.display = "block";
+            hoverBox.style.left = optionRect.left + "px";
+            hoverBox.style.top = (optionRect.top + window.scrollY + 20) + "px"; // Adjusting the position for better visibility
+        }
+    });
+    select.addEventListener("mouseout", function() {
+        hoverBox.style.display = "none";
+    });
+});
+document.getElementById('fileInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const img = new Image();
+    img.onload = function() {
+        const widthInput = document.getElementById('width');
+        const heightInput = document.getElementById('height');
+        const maxPixelsInput = document.getElementById('maxPixels');
+        const scaleFactorInput = document.getElementById('scaleFactor');
+
+        const screenWidth = window.innerWidth;
+
+        const targetWidth = (screenWidth<<2) / 14
+        const scaleFactor = Math.round((targetWidth / img.width)*10e+2)/10e+2;
+
+        const optimizedWidth = Math.floor(img.width * scaleFactor);
+        const optimizedHeight = Math.floor(img.height * scaleFactor);
+
+        widthInput.value = Math.max(optimizedWidth, 1);
+        heightInput.value = Math.max(optimizedHeight, 1);
+
+        scaleFactorInput.value = Math.abs(scaleFactor-1) <= 0.1 ? 1 : scaleFactor;
+
+        processImage();
+    };
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+function saveColorList() {
+    var colorListName = prompt("Enter a name for the color list:");
+    if (colorListName) {
+        var savedData = {
+            color: colors,
+            enabledColorsList: enabledColorsList
+        };
+        localStorage.setItem(listKey + colorListName, JSON.stringify(savedData));
+        var colorListsSelect = document.getElementById('colorLists');
+        var option = document.createElement("option");
+        option.text = colorListName;
+        option.value = colorListName;
+        colorListsSelect.add(option);
+        renderColors();
+    }
+}
+function loadColorList() {
+    var selectedColorListName = document.getElementById('colorLists').value;
+    if (selectedColorListName != listKey + "Default") {
+        var fullKey = listKey + selectedColorListName;
+        var savedData = localStorage.getItem(fullKey);
+        if (savedData) {
+            savedData = JSON.parse(savedData);
+            colors = savedData.color;
+            enabledColorsList = savedData.enabledColorsList;
+        }
+    } else {
+        colors = defaultColorList.color;
+        enabledColorsList = defaultColorList.enabledColorsList;
+    }
+    renderColors();
+}
+function removeColorList() {
+    var selectedColorListName = document.getElementById('colorLists').value;
+    if (selectedColorListName != listKey + "Default") {
+        var fullKey = listKey + selectedColorListName;
+        localStorage.removeItem(fullKey);
+        var colorListsSelect = document.getElementById('colorLists');
+        var options = colorListsSelect.options;
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].value === selectedColorListName) {
+                colorListsSelect.remove(i);
+                break;
+            }
+        }
+        if (colorListsSelect.options.length === 0) {
+            colors = defaultColorList.color;
+            enabledColorsList = defaultColorList.enabledColorsList;
+            renderColors();
+        }
+    }
+}
+/**
+ * Function to set the canvas size based on user-specified settings. 
+ * This function adjusts the canvas dimensions using one of three methods: 
+ * user-defined width and height, a target pixel goal, or a scale factor.
+ *
+ * @param {HTMLImageElement} img - The source image used to determine dimensions.
+ * @param {HTMLCanvasElement} canvas - The canvas element to resize.
+ * @param {number} newWidth - Desired width of the canvas. Use -1 to ignore this parameter.
+ * @param {number} newHeight - Desired height of the canvas. Use -1 to ignore this parameter.
+ * @param {number} pixelGoal - The target number of pixels for the resized canvas. Ignored unless 'pixelGoal' mode is selected.
+ * @param {number} scaleFactor - The scaling factor to apply to the image dimensions. Ignored unless 'scaleFactor' mode is selected.
+ */
+function setCanvasSize(img, canvas, newWidth, newHeight, pixelGoal, scaleFactor) {
+    const sizeSettings = document.getElementById('sizeSettings').value;
+
+    if (sizeSettings === 'widthHeight') {
+        // Set width and height based on user input or ratio adjustment
+        if (!(newWidth == -1 && newHeight == -1)) {
+            canvas.width = newWidth != -1 ? newWidth : img.width * (newHeight / img.height);
+            canvas.height = newHeight != -1 ? newHeight : img.height * (newWidth / img.width);
+        } else {
+            canvas.width = img.width;
+            canvas.height = img.height;
+        }
+    } else if (sizeSettings === 'pixelGoal') {
+        // Resize based on pixel goal
+        const newRes = resizePixelGoal(img.width, img.height, pixelGoal);
+        canvas.width = newRes[0];
+        canvas.height = newRes[1];
+    } else {
+        // Resize based on scale factor
+        canvas.width = img.width * scaleFactor;
+        canvas.height = img.height * scaleFactor;
+    }
+}
+/**
+ * Function to apply a specified dithering technique to an image.
+ * The function processes the image data within a canvas context using the selected dithering algorithm.
+ *
+ * @param {CanvasRenderingContext2D} context - The canvas 2D rendering context containing the image data to dither.
+ * @param {number} w - The width of the image or canvas area to apply the dithering.
+ * @param {number} h - The height of the image or canvas area to apply the dithering.
+ * @param {string} ditheringType - The type of dithering to apply. Options include:
+ *  - 'none': No dithering.
+ *  - 'floyd': Floyd-Steinberg dithering.
+ *  - 'nearest': Nearest color dithering.
+ *  - 'bayerMatrix2': Bayer matrix 2x2 dithering.
+ *  - 'bayerMatrix4': Bayer matrix 4x4 dithering.
+ *  - 'bayerMatrix8': Bayer matrix 8x8 dithering.
+ *  - 'bayerMatrix16': Bayer matrix 16x16 dithering.
+ *  - 'falseFloyd': False Floyd-Steinberg dithering.
+ *  - 'stucki': Stucki dithering.
+ *  - 'Burkes': Burkes dithering.
+ */
 function applyDithering(context, w ,h,ditheringType) {
     if (ditheringType == 'none') {
         noneDithering(context, w, h)
@@ -104,7 +330,7 @@ function applyDithering(context, w ,h,ditheringType) {
         brayerDithering16x16(context, w, h)
     }
 }
-function applyFliter(context,w,h) {
+function applyFilter(context,w,h) {
     if (filterList.length > 0) {
         for (let i = 0; i < filterList.length; i++) {
             if (filterList[i] == 'GrayScale') {
@@ -127,6 +353,8 @@ function applyFliter(context,w,h) {
             } else if (filterList[i] == 'median') {
                 const radius = Math.min(Math.abs(filterEffectPowerList[i][0]),15);
                 medianFilter(context,w,h, 1);
+            } else if (filterList[i] == 'Brighten') {
+                brightenFilter(context,w,h,1.2)
             }
         }
     } else {
@@ -151,8 +379,43 @@ function applyFliter(context,w,h) {
         } else if (filterType == 'median') {
             const radius = Math.min(Math.abs(document.getElementById('radius').value),15);
             medianFilter(context,w,h, radius);
+        } else if (filterType == 'Brighten') {
+            brightenFilter(context,w,h,1.2)
         }
     }
+}
+function getPerceivedBrightness(r, g, b) {
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+function brightenFilter(context, width, height, brightnessFactor) {
+    // Get the image data from the canvas
+    const imageData = context.getImageData(0, 0, width, height);
+    const data = imageData.data;
+
+    // Loop through all the pixels
+    for (let i = 0; i < data.length; i += 4) {
+        // Get the RGB values
+        let r = data[i];     // Red
+        let g = data[i + 1]; // Green
+        let b = data[i + 2]; // Blue
+
+        // Calculate the perceived brightness of the pixel
+        let brightness = getPerceivedBrightness(r, g, b);
+
+        // Apply the brightness factor to the perceived brightness
+        // Increase the brightness proportionally, but don't exceed the max value (255)
+        r = Math.min(255, r + (brightness * brightnessFactor));
+        g = Math.min(255, g + (brightness * brightnessFactor));
+        b = Math.min(255, b + (brightness * brightnessFactor));
+
+        // Set the new values to the image data
+        data[i] = r;
+        data[i + 1] = g;
+        data[i + 2] = b;
+    }
+
+    // Put the modified image data back to the canvas
+    context.putImageData(imageData, 0, 0);
 }
 function medianFilter(context, w, h, radius) {
     const imgData = context.getImageData(0, 0, w, h);
@@ -193,83 +456,15 @@ function medianFilter(context, w, h, radius) {
     }
     context.putImageData(imgData, 0, 0);
 }
-const listKey = '$I';
-const defaultColorList = {
-    color: rgbToHex([[255, 255, 255], [255, 33, 33], [255, 147, 196], [255, 129, 53], [255, 246, 9], [36, 156, 163], [120, 220, 82], [0, 63, 173], [135, 242, 255], [142, 46, 196], [164, 131, 159], [92, 64, 108], [229, 205, 196], [145, 70, 61], [0, 0, 0]]),
-    enabledColorsList: [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true]
-};
-function saveColorList() {
-    var colorListName = prompt("Enter a name for the color list:");
-    if (colorListName) {
-        var savedData = {
-            color: colors,
-            enabledColorsList: enabledColorsList
-        };
-        localStorage.setItem(listKey + colorListName, JSON.stringify(savedData));
-        var colorListsSelect = document.getElementById('colorLists');
-        var option = document.createElement("option");
-        option.text = colorListName;
-        option.value = colorListName;
-        colorListsSelect.add(option);
-        renderColors();
-    }
-}
-function loadColorList() {
-    var selectedColorListName = document.getElementById('colorLists').value;
-    if (selectedColorListName != listKey+ "Default") {
-        var fullKey = listKey + selectedColorListName;
-        var savedData = localStorage.getItem(fullKey);
-        if (savedData) {
-            savedData = JSON.parse(savedData);
-            colors = savedData.color;
-            enabledColorsList = savedData.enabledColorsList;
-        }
-    } else {
-        colors = defaultColorList.color;
-        enabledColorsList = defaultColorList.enabledColorsList;
-    }
-    renderColors();
-}
-function removeColorList() {
-    var selectedColorListName = document.getElementById('colorLists').value;
-    if (selectedColorListName != listKey + "Default") {
-        var fullKey = listKey + selectedColorListName;
-        localStorage.removeItem(fullKey);
-        var colorListsSelect = document.getElementById('colorLists');
-        var options = colorListsSelect.options;
-        for (var i = 0; i < options.length; i++) {
-            if (options[i].value === selectedColorListName) {
-                colorListsSelect.remove(i);
-                break;
-            }
-        }
-        if (colorListsSelect.options.length === 0) {
-            colors = defaultColorList.color;
-            enabledColorsList = defaultColorList.enabledColorsList;
-            renderColors();
-        }
-    }
-}
-window.onload = function() {
-    var colorListsSelect = document.getElementById('colorLists');
-    colorListsSelect.innerHTML = '';
-    var defaultOption = document.createElement("option");
-    defaultOption.text = "Default";
-    defaultOption.value = listKey + "Default";
-    colorListsSelect.add(defaultOption);
-    for (var i = 0; i < localStorage.length; i++) {
-        var key = localStorage.key(i);
-        if (key.startsWith(listKey)) {
-            var listName = key.substring(listKey.length);
-            var option = document.createElement("option");
-            option.text = listName;
-            option.value = listName;
-            colorListsSelect.add(option);
-        }
-    }
+const slider = document.getElementById('Slider');
+        const valueDisplay = document.getElementById('sliderValue');
 
-    renderColors();
-}
+        // Update the percentage display when the slider value changes
+        slider.addEventListener('input', function() {
+            const value = (slider.value * 100).toFixed(0); // Multiply by 100 to get percentage
+            valueDisplay.textContent = '' + value + '%';
+});
+
 function downloadImage() {
         let varName = document.getElementById('varName').value;
         const downloadLink = document.createElement('a');
@@ -336,15 +531,6 @@ function convertAndDownload() {
     downloadLink.click();
     document.body.removeChild(downloadLink);
 }
-document.getElementById('red').addEventListener('input', function() {
-    changeColorPickerColor();
-});
-document.getElementById('green').addEventListener('input', function() {
-    changeColorPickerColor();
-});
-document.getElementById('blue').addEventListener('input', function() {
-    changeColorPickerColor();
-});
 function changeColorPickerColor() {
     const colorPicker = document.getElementById('colorPicker');
     const redInput = parseInt(document.getElementById('red').value);
@@ -384,34 +570,6 @@ function setRGBValues(red, green, blue) {
     document.getElementById('green').value = green;
     document.getElementById('blue').value = blue;
 }
-document.getElementById('Filters').addEventListener('change', function() {
-    var selectedValue = this.value;
-    var customDiv = document.getElementById('customFilter');
-    var noiseDiv = document.getElementById('NoiseFilter');
-    var blurDiv = document.getElementById('blurFilter')
-    var radiusDiv = document.getElementById('RadiusFilter')
-    customDiv.style.display = 'none';
-    noiseDiv.style.display = 'none';
-    blurDiv.style.display = 'none';
-    radiusDiv.style.display = 'none';
-    if (selectedValue === 'custom') {
-        customDiv.style.display = 'block';
-    } else if (selectedValue === 'noise') {
-        noiseDiv.style.display = 'block';
-    } else if (selectedValue === 'blur') {
-        blurDiv.style.display = 'block';
-    } else if (selectedValue === 'median') {
-        radiusDiv.style.display = 'block';
-    }
-    fliterOption = selectedValue;
-});
-document.getElementById('sizeSettings').addEventListener('change', function() {
-    var selectedOption = this.value;
-        document.getElementById('scaleOptions').style.display = 'none';
-        document.getElementById('pixelGoalOptions').style.display = 'none';
-        document.getElementById('widthHeightOptions').style.display = 'none';
-        document.getElementById(selectedOption + 'Options').style.display = 'block';
-}); 
 function resizePixelGoal(width, height, totalPixelGoal) {
     if (totalPixelGoal == -1) {
         return [width, height];
@@ -441,7 +599,7 @@ function noneDithering(context,w,h) {
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            row.push(palArr.indexOf(findClosest([r,g,b], palArr)) + 1);
+            row.push(palArr.indexOf(findNearestColor([r,g,b], palArr)) + 1);
         }
         MakecodeImg.push(row);
     } 
@@ -457,90 +615,89 @@ function noneDithering(context,w,h) {
     imageString += "`";
 
 }
-function brayerDithering2x2(context, w, h) {
+function brayerDithering2x2(context, width, height) {
     const ditherMatrix = [
         [0, 2],
         [3, 1]
     ];
-    
+    const matrixWidth = ditherMatrix[0].length;
+    const matrixHeight = ditherMatrix.length;
+    const maxThreshold = Math.max(...ditherMatrix.flat());
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
-    const imgData = context.getImageData(0, 0, w, h);
+    const spread = 255 / palArr.length;
+    const imgData = context.getImageData(0, 0, width, height);
     const data = imgData.data;
-    const MakecodeImg = [];
-    for (let y = 0; y < h; y++) {
-        const row = [];
-        for (let x = 0; x < w; x++) {
-            const index = (y * w + x) * 4;
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const index = (y * width + x) * 4;
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            const threshold = ditherMatrix[x % 2][y % 2] / 3;
-            let newR = r > threshold * 255 ? 255 : 0;
-            let newG = g > threshold * 255 ? 255 : 0;
-            let newB = b > threshold * 255 ? 255 : 0;
-            const newpixel = findClosest([newR, newG, newB], palArr);
-            data[index] = newpixel[0];
-            data[index + 1] = newpixel[1];
-            data[index + 2] = newpixel[2];
-            row.push(palArr.indexOf(newpixel) + 1);
+
+            // Apply the Bayer matrix dithering to each channel
+            const threshold = (ditherMatrix[y % matrixHeight][x % matrixWidth] / maxThreshold) - 0.5;
+
+            const newR = Math.min(Math.max(r + threshold * spread, 0), 255);
+            const newG = Math.min(Math.max(g + threshold * spread, 0), 255);
+            const newB = Math.min(Math.max(b + threshold * spread, 0), 255);
+
+            // Find the nearest color in the palette
+            const newColor = findNearestColor([newR, newG, newB], palArr);
+
+            // Update the pixel color in the image data
+            data[index] = newColor[0];
+            data[index + 1] = newColor[1];
+            data[index + 2] = newColor[2];
         }
-        MakecodeImg.push(row);
     }
-    imageString = ' = img\`\n';
-    for (let i = 0; i < MakecodeImg.length; i++) {
-        let rows = MakecodeImg[i];
-        for (let j = 0; j < rows.length; j++) {
-            let pixel = rows[j];
-            imageString += pixel.toString(16) + " ";
-        }
-        imageString += "\n";
-    }
-    imageString += "`";
+
+    // Apply the modified image data back to the canvas
     context.putImageData(imgData, 0, 0);
 }
-function brayerDithering4x4(context, w, h) {
+function brayerDithering4x4(context, width, height) {
     const ditherMatrix = [
         [ 0,  8,  2, 10],
         [12,  4, 14,  6],
         [ 3, 11,  1,  9],
         [15,  7, 13,  5]
     ];
+    const matrixWidth = ditherMatrix[0].length;
+    const matrixHeight = ditherMatrix.length;
+    const maxThreshold = Math.max(...ditherMatrix.flat());
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
-    const imgData = context.getImageData(0, 0, w, h);
+    const spread = 255 / palArr.length;
+    const imgData = context.getImageData(0, 0, width, height);
     const data = imgData.data;
-    const MakecodeImg = [];
-    for (let y = 0; y < h; y++) {
-        const row = [];
-        for (let x = 0; x < w; x++) {
-            const index = (y * w + x) * 4;
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const index = (y * width + x) * 4;
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            const threshold = ditherMatrix[x % 4][y % 4] / 15 ;
-            let newR = r > threshold * 255 ? 255 : 0;
-            let newG = g > threshold * 255 ? 255 : 0;
-            let newB = b > threshold * 255 ? 255 : 0;
-            const newpixel = findClosest([newR, newG, newB], palArr);
-            data[index] = newpixel[0];
-            data[index + 1] = newpixel[1];
-            data[index + 2] = newpixel[2];
-            row.push(palArr.indexOf(newpixel) + 1);
+
+            // Apply the Bayer matrix dithering to each channel
+            const threshold = (ditherMatrix[y % matrixHeight][x % matrixWidth] / maxThreshold) - 0.5;
+
+            const newR = Math.min(Math.max(r + threshold * spread, 0), 255);
+            const newG = Math.min(Math.max(g + threshold * spread, 0), 255);
+            const newB = Math.min(Math.max(b + threshold * spread, 0), 255);
+
+            // Find the nearest color in the palette
+            const newColor = findNearestColor([newR, newG, newB], palArr);
+
+            // Update the pixel color in the image data
+            data[index] = newColor[0];
+            data[index + 1] = newColor[1];
+            data[index + 2] = newColor[2];
         }
-        MakecodeImg.push(row);
     }
-    imageString = ' = img\`\n';
-    for (let i = 0; i < MakecodeImg.length; i++) {
-        let rows = MakecodeImg[i];
-        for (let j = 0; j < rows.length; j++) {
-            let pixel = rows[j];
-            imageString += pixel.toString(16) + " ";
-        }
-        imageString += "\n";
-    }
-    imageString += "`";
+
+    // Apply the modified image data back to the canvas
     context.putImageData(imgData, 0, 0);
 }
-function brayerDithering8x8(context, w, h) {
+function brayerDithering8x8(context, width, height) {
     const ditherMatrix = [
         [ 0, 48, 12, 60,  3, 51, 15, 63],
         [32, 16, 44, 28, 35, 19, 47, 31],
@@ -551,58 +708,42 @@ function brayerDithering8x8(context, w, h) {
         [10, 58,  6, 54,  9, 57,  5, 53],
         [42, 26, 38, 22, 41, 25, 37, 21]
     ];
+    const matrixWidth = ditherMatrix[0].length;
+    const matrixHeight = ditherMatrix.length;
+    const maxThreshold = Math.max(...ditherMatrix.flat());
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
-    const imgData = context.getImageData(0, 0, w, h);
+    const spread = 255 / palArr.length;
+    const imgData = context.getImageData(0, 0, width, height);
     const data = imgData.data;
-    const MakecodeImg = [];
-    for (let y = 0; y < h; y++) {
-        const row = [];
-        for (let x = 0; x < w; x++) {
-            const index = (y * w + x) * 4;
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const index = (y * width + x) * 4;
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            const threshold = ditherMatrix[x % 8][y % 8] / 63;
-            let newR = r > threshold * 255 ? 255 : 0;
-            let newG = g > threshold * 255 ? 255 : 0;
-            let newB = b > threshold * 255 ? 255 : 0;
-            const newpixel = findClosest([newR, newG, newB], palArr);
-            data[index] = newpixel[0];
-            data[index + 1] = newpixel[1];
-            data[index + 2] = newpixel[2];
-            row.push(palArr.indexOf(newpixel) + 1);
+
+            // Apply the Bayer matrix dithering to each channel
+            const threshold = (ditherMatrix[y % matrixHeight][x % matrixWidth] / maxThreshold) - 0.5;
+
+            const newR = Math.min(Math.max(r + threshold * spread, 0), 255);
+            const newG = Math.min(Math.max(g + threshold * spread, 0), 255);
+            const newB = Math.min(Math.max(b + threshold * spread, 0), 255);
+
+            // Find the nearest color in the palette
+            const newColor = findNearestColor([newR, newG, newB], palArr);
+
+            // Update the pixel color in the image data
+            data[index] = newColor[0];
+            data[index + 1] = newColor[1];
+            data[index + 2] = newColor[2];
         }
-        MakecodeImg.push(row);
-    }
-    imageString = ' = img\`\n';
-    for (let i = 0; i < MakecodeImg.length; i++) {
-        let rows = MakecodeImg[i];
-        for (let j = 0; j < rows.length; j++) {
-            let pixel = rows[j];
-            imageString += pixel.toString(16) + " ";
-        }
-        imageString += "\n";
-    }
-    imageString += "`";
-    context.putImageData(imgData, 0, 0);
-}
-function easterEgg() {
-    let currentValue = Number(localStorage.getItem('easterEgg')) || 0;
-    currentValue++;
-    localStorage.setItem('easterEgg', currentValue);
-    
-    if (currentValue == 100 || currentValue == 1000) {
-        window.location.href = 'easterEgg.html';
-    } else {
-        console.log(currentValue)
     }
 
+    // Apply the modified image data back to the canvas
+    context.putImageData(imgData, 0, 0);
 }
-function goToeasterEgg() {
-    window.location.href = 'easterEgg.html';
-}
-document.getElementById('version').addEventListener('input', easterEgg);
-function brayerDithering16x16(context, w, h) {
+function brayerDithering16x16(context, width, height) {
     const ditherMatrix = [
         [  0, 192,  48, 240,  12, 204,  60, 252,   3, 195,  51, 243,  15, 207,  63, 255],
         [128,  64, 176, 112, 140,  76, 188, 124, 131,  67, 179, 115, 143,  79, 191, 127],
@@ -621,39 +762,39 @@ function brayerDithering16x16(context, w, h) {
         [ 42, 234,  26, 218,  38, 230,  22, 214,  41, 233,  25, 217,  37, 229,  21, 213],
         [170, 106, 154,  90, 166, 102, 150,  86, 169, 105, 153,  89, 165, 101, 149,  85]
     ];
+    const matrixWidth = ditherMatrix[0].length;
+    const matrixHeight = ditherMatrix.length;
+    const maxThreshold = Math.max(...ditherMatrix.flat());
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
-    const imgData = context.getImageData(0, 0, w, h);
+    const spread = 255 / palArr.length;
+    const imgData = context.getImageData(0, 0, width, height);
     const data = imgData.data;
-    const MakecodeImg = [];
-    for (let y = 0; y < h; y++) {
-        const row = [];
-        for (let x = 0; x < w; x++) {
-            const index = (y * w + x) * 4;
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const index = (y * width + x) * 4;
             const r = data[index];
             const g = data[index + 1];
             const b = data[index + 2];
-            const threshold = ditherMatrix[x % 16][y % 16] / 255 ;
-            let newR = r > threshold * 255 ? 255 : 0;
-            let newG = g > threshold * 255 ? 255 : 0;
-            let newB = b > threshold * 255 ? 255 : 0;
-            const newpixel = findClosest([newR, newG, newB], palArr);
-            data[index] = newpixel[0];
-            data[index + 1] = newpixel[1];
-            data[index + 2] = newpixel[2];
-            row.push(palArr.indexOf(newpixel) + 1);
+
+            // Apply the Bayer matrix dithering to each channel
+            const threshold = (ditherMatrix[y % matrixHeight][x % matrixWidth] / maxThreshold) - 0.5;
+
+            const newR = Math.min(Math.max(r + threshold * spread, 0), 255);
+            const newG = Math.min(Math.max(g + threshold * spread, 0), 255);
+            const newB = Math.min(Math.max(b + threshold * spread, 0), 255);
+
+            // Find the nearest color in the palette
+            const newColor = findNearestColor([newR, newG, newB], palArr);
+
+            // Update the pixel color in the image data
+            data[index] = newColor[0];
+            data[index + 1] = newColor[1];
+            data[index + 2] = newColor[2];
         }
-        MakecodeImg.push(row);
     }
-    imageString = ' = img\`\n';
-    for (let i = 0; i < MakecodeImg.length; i++) {
-        let rows = MakecodeImg[i];
-        for (let j = 0; j < rows.length; j++) {
-            let pixel = rows[j];
-            imageString += pixel.toString(16) + " ";
-        }
-        imageString += "\n";
-    }
-    imageString += "`";
+
+    // Apply the modified image data back to the canvas
     context.putImageData(imgData, 0, 0);
 }
 function ClosesColorDithering(context, w, h) {
@@ -666,7 +807,7 @@ function ClosesColorDithering(context, w, h) {
         for (var x = 0; x < w; x++) {
             var id = ((y * w) + x) * 4;
             oldpixel = [data[id], data[id + 1], data[id + 2]];
-            newpixel = findClosest(oldpixel, palArr);
+            newpixel = findNearestColor(oldpixel, palArr);
             row.push(palArr.indexOf(newpixel) + 1);
             data[id] = newpixel[0];
             data[id + 1] = newpixel[1];
@@ -697,7 +838,7 @@ function floydSteinbergDithering(context, w, h) {
         for (var x = 0; x < w; x++) {
             var id = ((y * w) + x) * 4;
             oldpixel = [data[id], data[id + 1], data[id + 2]];
-            newpixel = findClosest(oldpixel, palArr);
+            newpixel = findNearestColor(oldpixel, palArr);
             row.push(palArr.indexOf(newpixel) + 1);
             data[id] = newpixel[0];
             data[id + 1] = newpixel[1];
@@ -757,7 +898,7 @@ function FalseFloydSteinbergDithering(context, w, h) {
         for (var x = 0; x < w; x++) {
             var id = ((y * w) + x) * 4;
             oldpixel = [data[id], data[id + 1], data[id + 2]];
-            newpixel = findClosest(oldpixel, palArr);
+            newpixel = findNearestColor(oldpixel, palArr);
             row.push(palArr.indexOf(newpixel) + 1);
             data[id] = newpixel[0];
             data[id + 1] = newpixel[1];
@@ -810,7 +951,7 @@ function stuckiDithering(context, w, h) {
         for (var x = 0; x < w; x++) {
             var id = ((y * w) + x) * 4;
             oldpixel = [data[id], data[id + 1], data[id + 2]];
-            newpixel = findClosest(oldpixel, palArr);
+            newpixel = findNearestColor(oldpixel, palArr);
             row.push(palArr.indexOf(newpixel) + 1);
             data[id] = newpixel[0];
             data[id + 1] = newpixel[1];
@@ -926,7 +1067,7 @@ function BurkesDithering(context, w, h) {
         for (var x = 0; x < w; x++) {
             var id = ((y * w) + x) * 4;
             oldpixel = [data[id], data[id + 1], data[id + 2]];
-            newpixel = findClosest(oldpixel, palArr);
+            newpixel = findNearestColor(oldpixel, palArr);
             row.push(palArr.indexOf(newpixel) + 1);
             data[id] = newpixel[0];
             data[id + 1] = newpixel[1];
@@ -1130,12 +1271,6 @@ function unblurImage(context, w, h) {
     }
     context.putImageData(imgData, 0, 0);
 }
-
-function findClosest(t, s){let e=s[0],h=Math.abs(t[0]-e[0])+Math.abs(t[1]-e[1])+Math.abs(t[2]-e[2]);for(let a=1;a<s.length;a++){var[b,r,M]=s[a],M=Math.abs(t[0]-b)+Math.abs(t[1]-r)+Math.abs(t[2]-M);M<h&&(h=M,e=s[a])}return e}
-function getQuantErr(r,t){return r[0]-=t[0],r[1]-=t[1],r[2]-=t[2],r}
-function applyErrBitShift(r,t,i,n){i*=multiplier;return r[0]+=t[0]*i>>n,r[1]+=t[1]*i>>n,r[2]+=t[2]*i>>n,r}
-function applyErrDiv(r,t,i,n){i*=multiplier,n=1/n;return r[0]+=t[0]*i*n,r[1]+=t[1]*i*n,r[2]+=t[2]*i*n,r}
-
 function addColor() {
     const colorInput = document.getElementById('colorInput');
     const color = colorInput.value.trim();
@@ -1156,7 +1291,7 @@ function removeColor(index) {
     enabledColorsList.splice(index, 1)
     renderColors();
 }
-function moveUp(index) {  
+function moveColorUp(index) {  
     if (index > 0) {
         const switchColors = [colors[index],colors[index-1]]
         colors[index] = switchColors[1]
@@ -1167,7 +1302,7 @@ function moveUp(index) {
         renderColors();
     }
 }
-function moveDown(index) {  
+function moveColorDown(index) {  
     if (index < colors.length-1) {
         const switchColors = [colors[index],colors[index+1]]
         colors[index] = switchColors[1]
@@ -1218,10 +1353,10 @@ function renderColors() {
         changeColorBtn.addEventListener('click', () => changeColor(index));
         const moveColorUpBtn = document.createElement('button');
         moveColorUpBtn.textContent = '\u2191';
-        moveColorUpBtn.addEventListener('click', () => moveUp(index));
+        moveColorUpBtn.addEventListener('click', () => moveColorUp(index));
         const moveColorDownBtn = document.createElement('button');
         moveColorDownBtn.textContent = '\u2193';
-        moveColorDownBtn.addEventListener('click', () => moveDown(index));
+        moveColorDownBtn.addEventListener('click', () => moveColorDown(index));
         const enableBtn = document.createElement('button');
         enableBtn.textContent = enabledColorsList[index] ? 'Disable' : 'Enable';
         enableBtn.classList.add(enabledColorsList[index] ? 'enabled' : 'disabled');
@@ -1274,48 +1409,189 @@ function addFilter() {
     if (filter != 'none') {
         filterList.push(filter)
         if (filter == 'custom') {
-            const r = document.getElementById('red').value;
-            const g = document.getElementById('green').value;
-            const b = document.getElementById('blue').value;
+            const r = document.getElementById('red').value!==''?document.getElementById('red').value:"255";
+            const g = document.getElementById('green').value!==''?document.getElementById('green').value:"255";
+            const b = document.getElementById('blue').value!==''?document.getElementById('blue').value:"255";
             data = [r,g,b];
         } else if (filter == 'noise') {
-            const noiseLevel = document.getElementById('noiseLevel').value;
+            const noiseLevel = document.getElementById('noiseLevel').value!==''?document.getElementById('noiseLevel').value:15;
             data = [noiseLevel];
         } else if (filter == 'blur') {
-            const blurPower = Math.min(Math.abs(document.getElementById('blurPower').value),50);
-            data = [blurPower];
+            const blurPower = Math.floor(Math.min(Math.abs(document.getElementById('blurPower').value),50));
+            data = [blurPower>0?blurPower:2];
         } else if (filter == 'median') {
-            const radius = Math.min(Math.abs(document.getElementById('blurPower').value),10);
-            data = [radius]
+            const radius = Math.floor(Math.min(Math.abs(document.getElementById('blurPower').value),10));
+            data = [radius>0?radius:2]
+        } else if (filter == 'Brighten') {
+            const slider = document.getElementById('Slider').value // number from 0 to 2
+            data = [slider]
         } else {
             data = [];
         }
         filterEffectPowerList.push(data)
     }
+    renderFilterList()
     
 }
-function resetFilter() {
-    filterList = [];
-    filterEffectPowerList = [];
+function getFilterData(filter,effect) {
+    switch (filter) {
+        case 'custom':
+            return `${rgbToHex(effect)}`
+        case 'noise':
+            return `power: ${effect[0]}`
+        case 'blur':
+            return `power: ${effect[0]}`
+        case 'median':
+            return `radius: ${effect[0]}`
+        case 'brighten':
+            return `${Math.round(effect[0]*100)}%`            
+    }
+    return ''
 }
-document.addEventListener("DOMContentLoaded", function() {
-    var select = document.getElementById("ditheringOptions");
-    var hoverBox = document.getElementById("hoverBox");
-    var hoverDescription = document.getElementById("hoverDescription");
-    select.addEventListener("mouseover", function(event) {
-        if (event.target.tagName === "OPTION") {
-            var optionDescription = event.target.getAttribute("data-description");
-            var optionRect = event.target.getBoundingClientRect();
-             hoverDescription.textContent = optionDescription;
-             hoverBox.style.display = "block";
-            hoverBox.style.left = optionRect.left + "px";
-            hoverBox.style.top = (optionRect.top + window.scrollY + 20) + "px"; // Adjusting the position for better visibility
+
+
+
+// Functions to handle removal, moving up, and moving down
+function removeFilter(index) {
+    filterList.splice(index, 1);
+    filterEffectPowerList.splice(index, 1);
+    renderFilterList(); // Re-render the list
+}
+
+function moveUp(index) {
+    if (index > 0) {
+        [filterList[index - 1], filterList[index]] = [filterList[index], filterList[index - 1]];
+        [filterEffectPowerList[index - 1], filterEffectPowerList[index]] = [filterEffectPowerList[index], filterEffectPowerList[index - 1]];
+        renderFilterList(); // Re-render the list
+    }
+}
+
+function moveDown(index) {
+    if (index < filterList.length - 1) {
+        [filterList[index], filterList[index + 1]] = [filterList[index + 1], filterList[index]];
+        [filterEffectPowerList[index], filterEffectPowerList[index + 1]] = [filterEffectPowerList[index + 1], filterEffectPowerList[index]];
+        renderFilterList(); // Re-render the list
+    }
+}
+
+function renderFilterList() {
+    const filterListElement = document.getElementById('FiltersList');
+    filterListElement.innerHTML = ''; // Clear the list
+
+    filterList.forEach((filter, index) => {
+        filter = filter.toUpperCase()==='UNBLUR'?'SHARPEN':filter
+        const li = document.createElement('li');
+        li.style.position = 'relative';
+        li.style.marginBottom = '5px';
+
+        // Filter name
+        const filterNameSpan = document.createElement('span');
+        filterNameSpan.textContent = filter.toUpperCase();
+        filterNameSpan.style.marginRight = '10px';
+        filterNameSpan.style.color = '#fff';
+        filterNameSpan.style.fontWeight = 'bold';
+
+        // Get effect data
+        const effectData = filterEffectPowerList[index] != null ? filterEffectPowerList[index] : 'N/A';
+
+        // Get filter data (ensure valid return)
+        const text = getFilterData(filter.toLowerCase(), effectData) || 'N/A';
+
+        console.log("Filter:", filter); // Debugging: log filter name
+        console.log("Effect Data:", effectData); // Debugging: log effect data
+        console.log("Text:", text); // Debugging: log the result from getFilterData
+
+        const effectSpan = document.createElement('span');
+
+        if (text.startsWith('#')) {
+            // Create a canvas to display the hex color
+            const canvas = document.createElement('canvas');
+            canvas.width = 20;
+            canvas.height = 20;
+            canvas.style.marginRight = '10px';
+
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = text;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Add canvas to list item
+            li.appendChild(canvas);
+
+            // Add the effectSpan
+            effectSpan.textContent = text;
+            effectSpan.style.marginRight = '10px';
+            effectSpan.style.color = getTextColor(text); // Ensure getTextColor returns a readable color
+            effectSpan.style.fontStyle = 'italic';
+            li.appendChild(effectSpan);
+        } else {
+            effectSpan.textContent = text;
+            effectSpan.style.marginRight = '10px';
+            effectSpan.style.color = '#ccc';
+            effectSpan.style.fontStyle = 'italic';
+
+            // Append the effectSpan to the list item
+            li.appendChild(effectSpan);
         }
+
+        // Remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', () => removeFilter(index));
+
+        // Move up button
+        const moveFilterUpBtn = document.createElement('button');
+        moveFilterUpBtn.textContent = '\u2191'; // Up arrow
+        moveFilterUpBtn.addEventListener('click', () => moveUp(index));
+        if (index === 0) {
+            moveFilterUpBtn.style.display = 'none';
+        }
+
+        // Move down button
+        const moveFilterDownBtn = document.createElement('button');
+        moveFilterDownBtn.textContent = '\u2193'; // Down arrow
+        moveFilterDownBtn.addEventListener('click', () => moveDown(index));
+        if (index === filterList.length - 1) {
+            moveFilterDownBtn.style.display = 'none';
+        }
+
+        // Append elements to the list item
+        li.appendChild(filterNameSpan);
+        li.appendChild(removeBtn);
+        li.appendChild(moveFilterUpBtn);
+        li.appendChild(moveFilterDownBtn);
+
+        // Append the list item to the filter list
+        filterListElement.appendChild(li);
     });
-    select.addEventListener("mouseout", function() {
-        hoverBox.style.display = "none";
-    });
-});
-document.getElementById('fileInput').addEventListener('change', function(event) {
-    processImage();
-});
+}
+
+
+
+
+
+const tools = {
+    colors: function(len=255,opt=0) {
+        colors = [];
+        enabledColorsList = [];
+        colors.push('#ffffff')
+        colors.push('#000000')
+        enabledColorsList.push(true)
+        enabledColorsList.push(true)
+        for (let i = 0; i < len-1; i++) {
+                let randomColor = this.getRandomColor(opt);
+                colors.push(randomColor);
+                enabledColorsList.push(true);
+        }
+        renderColors()
+    },
+    getRandomColor: function(opt=0) {
+        let colorParts = ['#']
+        let g=Math.floor(Math.random()*16).toString(16)
+        if(opt===0){for(let j=0;j<6;j++)colorParts.push(Math.floor(Math.random()*16).toString(16))
+        } else if (opt===1) for(let j=0;j<6;j++)colorParts.push(g)
+        return colorParts.join('');
+    },
+    filters: function() {
+        console.log(`${filterList} ; ${JSON.stringify(filterEffectPowerList)}`)
+    }
+}
