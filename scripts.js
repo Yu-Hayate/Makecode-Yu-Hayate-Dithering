@@ -315,9 +315,9 @@ function applyDithering(context, w ,h,ditheringType) {
     } else if (ditheringType == 'nearest') {
         ClosesColorDithering(context, w, h);
     } else if (ditheringType == 'bayerMatrix4') {
-        brayerDithering4x4(context, w, h)
+        bayerDithering4x4(context, w, h)
     } else if (ditheringType == 'bayerMatrix8') {
-        brayerDithering8x8(context, w, h)
+        bayerDithering8x8(context, w, h)
     } else if (ditheringType == 'falseFloyd') {
         FalseFloydSteinbergDithering(context, w, h)
     } else if (ditheringType == 'stucki') {
@@ -325,9 +325,9 @@ function applyDithering(context, w ,h,ditheringType) {
     } else if (ditheringType == 'Burkes') {
         BurkesDithering(context, w, h);
     } else if (ditheringType == 'bayerMatrix2') {
-        brayerDithering2x2(context, w, h)
+        bayerDithering2x2(context, w, h)
     } else if (ditheringType == 'bayerMatrix16') {
-        brayerDithering16x16(context, w, h)
+        bayerDithering16x16(context, w, h)
     }
 }
 function applyFilter(context,w,h) {
@@ -615,18 +615,21 @@ function noneDithering(context,w,h) {
     imageString += "`";
 
 }
-function brayerDithering2x2(context, width, height) {
+
+function bayerDithering2x2(context, width, height) {
     const ditherMatrix = [
         [0, 2],
-        [3, 1]
+        [3, 1],
     ];
     const matrixWidth = ditherMatrix[0].length;
     const matrixHeight = ditherMatrix.length;
     const maxThreshold = Math.max(...ditherMatrix.flat());
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
-    const spread = 255 / palArr.length;
     const imgData = context.getImageData(0, 0, width, height);
     const data = imgData.data;
+
+    // Normalize the Bayer matrix to 0-1 range
+    const normalizedMatrix = ditherMatrix.map(row => row.map(value => value / maxThreshold));
 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
@@ -635,15 +638,16 @@ function brayerDithering2x2(context, width, height) {
             const g = data[index + 1];
             const b = data[index + 2];
 
-            // Apply the Bayer matrix dithering to each channel
-            const threshold = (ditherMatrix[y % matrixHeight][x % matrixWidth] / maxThreshold) - 0.5;
+            // Normalize pixel intensity
+            const threshold = normalizedMatrix[y % matrixHeight][x % matrixWidth] - 0.5;
 
-            const newR = Math.min(Math.max(r + threshold * spread, 0), 255);
-            const newG = Math.min(Math.max(g + threshold * spread, 0), 255);
-            const newB = Math.min(Math.max(b + threshold * spread, 0), 255);
+            // Add dithering to each channel
+            const ditheredR = Math.min(Math.max(r / 255 + threshold, 0), 1) * 255;
+            const ditheredG = Math.min(Math.max(g / 255 + threshold, 0), 1) * 255;
+            const ditheredB = Math.min(Math.max(b / 255 + threshold, 0), 1) * 255;
 
             // Find the nearest color in the palette
-            const newColor = findNearestColor([newR, newG, newB], palArr);
+            const newColor = findNearestColor([ditheredR, ditheredG, ditheredB], palArr);
 
             // Update the pixel color in the image data
             data[index] = newColor[0];
@@ -655,7 +659,7 @@ function brayerDithering2x2(context, width, height) {
     // Apply the modified image data back to the canvas
     context.putImageData(imgData, 0, 0);
 }
-function brayerDithering4x4(context, width, height) {
+function bayerDithering4x4(context, width, height) {
     const ditherMatrix = [
         [ 0,  8,  2, 10],
         [12,  4, 14,  6],
@@ -666,9 +670,11 @@ function brayerDithering4x4(context, width, height) {
     const matrixHeight = ditherMatrix.length;
     const maxThreshold = Math.max(...ditherMatrix.flat());
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
-    const spread = 255 / palArr.length;
     const imgData = context.getImageData(0, 0, width, height);
     const data = imgData.data;
+
+    // Normalize the Bayer matrix to 0-1 range
+    const normalizedMatrix = ditherMatrix.map(row => row.map(value => value / maxThreshold));
 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
@@ -677,15 +683,16 @@ function brayerDithering4x4(context, width, height) {
             const g = data[index + 1];
             const b = data[index + 2];
 
-            // Apply the Bayer matrix dithering to each channel
-            const threshold = (ditherMatrix[y % matrixHeight][x % matrixWidth] / maxThreshold) - 0.5;
+            // Normalize pixel intensity
+            const threshold = normalizedMatrix[y % matrixHeight][x % matrixWidth] - 0.5;
 
-            const newR = Math.min(Math.max(r + threshold * spread, 0), 255);
-            const newG = Math.min(Math.max(g + threshold * spread, 0), 255);
-            const newB = Math.min(Math.max(b + threshold * spread, 0), 255);
+            // Add dithering to each channel
+            const ditheredR = Math.min(Math.max(r / 255 + threshold, 0), 1) * 255;
+            const ditheredG = Math.min(Math.max(g / 255 + threshold, 0), 1) * 255;
+            const ditheredB = Math.min(Math.max(b / 255 + threshold, 0), 1) * 255;
 
             // Find the nearest color in the palette
-            const newColor = findNearestColor([newR, newG, newB], palArr);
+            const newColor = findNearestColor([ditheredR, ditheredG, ditheredB], palArr);
 
             // Update the pixel color in the image data
             data[index] = newColor[0];
@@ -697,24 +704,26 @@ function brayerDithering4x4(context, width, height) {
     // Apply the modified image data back to the canvas
     context.putImageData(imgData, 0, 0);
 }
-function brayerDithering8x8(context, width, height) {
+function bayerDithering8x8(context, width, height) {
     const ditherMatrix = [
-        [ 0, 48, 12, 60,  3, 51, 15, 63],
+        [0, 48, 12, 60, 3, 51, 15, 63],
         [32, 16, 44, 28, 35, 19, 47, 31],
-        [ 8, 56,  4, 52, 11, 59,  7, 55],
+        [8, 56, 4, 52, 11, 59, 7, 55],
         [40, 24, 36, 20, 43, 27, 39, 23],
-        [ 2, 50, 14, 62,  1, 49, 13, 61],
+        [2, 50, 14, 62, 1, 49, 13, 61],
         [34, 18, 46, 30, 33, 17, 45, 29],
-        [10, 58,  6, 54,  9, 57,  5, 53],
+        [10, 58, 6, 54, 9, 57, 5, 53],
         [42, 26, 38, 22, 41, 25, 37, 21]
     ];
     const matrixWidth = ditherMatrix[0].length;
     const matrixHeight = ditherMatrix.length;
     const maxThreshold = Math.max(...ditherMatrix.flat());
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
-    const spread = 255 / palArr.length;
     const imgData = context.getImageData(0, 0, width, height);
     const data = imgData.data;
+
+    // Normalize the Bayer matrix to 0-1 range
+    const normalizedMatrix = ditherMatrix.map(row => row.map(value => value / maxThreshold));
 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
@@ -723,15 +732,16 @@ function brayerDithering8x8(context, width, height) {
             const g = data[index + 1];
             const b = data[index + 2];
 
-            // Apply the Bayer matrix dithering to each channel
-            const threshold = (ditherMatrix[y % matrixHeight][x % matrixWidth] / maxThreshold) - 0.5;
+            // Normalize pixel intensity
+            const threshold = normalizedMatrix[y % matrixHeight][x % matrixWidth] - 0.5;
 
-            const newR = Math.min(Math.max(r + threshold * spread, 0), 255);
-            const newG = Math.min(Math.max(g + threshold * spread, 0), 255);
-            const newB = Math.min(Math.max(b + threshold * spread, 0), 255);
+            // Add dithering to each channel
+            const ditheredR = Math.min(Math.max(r / 255 + threshold, 0), 1) * 255;
+            const ditheredG = Math.min(Math.max(g / 255 + threshold, 0), 1) * 255;
+            const ditheredB = Math.min(Math.max(b / 255 + threshold, 0), 1) * 255;
 
             // Find the nearest color in the palette
-            const newColor = findNearestColor([newR, newG, newB], palArr);
+            const newColor = findNearestColor([ditheredR, ditheredG, ditheredB], palArr);
 
             // Update the pixel color in the image data
             data[index] = newColor[0];
@@ -743,7 +753,7 @@ function brayerDithering8x8(context, width, height) {
     // Apply the modified image data back to the canvas
     context.putImageData(imgData, 0, 0);
 }
-function brayerDithering16x16(context, width, height) {
+function bayerDithering16x16(context, width, height) {
     const ditherMatrix = [
         [  0, 192,  48, 240,  12, 204,  60, 252,   3, 195,  51, 243,  15, 207,  63, 255],
         [128,  64, 176, 112, 140,  76, 188, 124, 131,  67, 179, 115, 143,  79, 191, 127],
@@ -766,9 +776,11 @@ function brayerDithering16x16(context, width, height) {
     const matrixHeight = ditherMatrix.length;
     const maxThreshold = Math.max(...ditherMatrix.flat());
     const palArr = removedisabledColors(hexToRgb(colors), enabledColorsList);
-    const spread = 255 / palArr.length;
     const imgData = context.getImageData(0, 0, width, height);
     const data = imgData.data;
+
+    // Normalize the Bayer matrix to 0-1 range
+    const normalizedMatrix = ditherMatrix.map(row => row.map(value => value / maxThreshold));
 
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
@@ -777,15 +789,16 @@ function brayerDithering16x16(context, width, height) {
             const g = data[index + 1];
             const b = data[index + 2];
 
-            // Apply the Bayer matrix dithering to each channel
-            const threshold = (ditherMatrix[y % matrixHeight][x % matrixWidth] / maxThreshold) - 0.5;
+            // Normalize pixel intensity
+            const threshold = normalizedMatrix[y % matrixHeight][x % matrixWidth] - 0.5;
 
-            const newR = Math.min(Math.max(r + threshold * spread, 0), 255);
-            const newG = Math.min(Math.max(g + threshold * spread, 0), 255);
-            const newB = Math.min(Math.max(b + threshold * spread, 0), 255);
+            // Add dithering to each channel
+            const ditheredR = Math.min(Math.max(r / 255 + threshold, 0), 1) * 255;
+            const ditheredG = Math.min(Math.max(g / 255 + threshold, 0), 1) * 255;
+            const ditheredB = Math.min(Math.max(b / 255 + threshold, 0), 1) * 255;
 
             // Find the nearest color in the palette
-            const newColor = findNearestColor([newR, newG, newB], palArr);
+            const newColor = findNearestColor([ditheredR, ditheredG, ditheredB], palArr);
 
             // Update the pixel color in the image data
             data[index] = newColor[0];
@@ -1436,28 +1449,23 @@ function addFilter() {
 function getFilterData(filter,effect) {
     switch (filter) {
         case 'custom':
-            return `${rgbToHex(effect)}`
+            return '' +rgbToHex(effect)
         case 'noise':
-            return `power: ${effect[0]}`
+            return 'power: ' +effect[0]
         case 'blur':
-            return `power: ${effect[0]}`
+            return 'power: ' +effect[0]
         case 'median':
-            return `radius: ${effect[0]}`
+            return 'radius: ' + effect[0]
         case 'brighten':
-            return `${Math.round(effect[0]*100)}%`            
+            return '' + Math.round(effect[0]*100) + '%'       
     }
     return ''
 }
-
-
-
-// Functions to handle removal, moving up, and moving down
 function removeFilter(index) {
     filterList.splice(index, 1);
     filterEffectPowerList.splice(index, 1);
     renderFilterList(); // Re-render the list
 }
-
 function moveUp(index) {
     if (index > 0) {
         [filterList[index - 1], filterList[index]] = [filterList[index], filterList[index - 1]];
@@ -1465,7 +1473,6 @@ function moveUp(index) {
         renderFilterList(); // Re-render the list
     }
 }
-
 function moveDown(index) {
     if (index < filterList.length - 1) {
         [filterList[index], filterList[index + 1]] = [filterList[index + 1], filterList[index]];
@@ -1473,10 +1480,9 @@ function moveDown(index) {
         renderFilterList(); // Re-render the list
     }
 }
-
 function renderFilterList() {
     const filterListElement = document.getElementById('FiltersList');
-    filterListElement.innerHTML = ''; // Clear the list
+    filterListElement.innerHTML = '';
 
     filterList.forEach((filter, index) => {
         filter = filter.toUpperCase()==='UNBLUR'?'SHARPEN':filter
@@ -1484,27 +1490,23 @@ function renderFilterList() {
         li.style.position = 'relative';
         li.style.marginBottom = '5px';
 
-        // Filter name
         const filterNameSpan = document.createElement('span');
         filterNameSpan.textContent = filter.toUpperCase();
         filterNameSpan.style.marginRight = '10px';
         filterNameSpan.style.color = '#fff';
         filterNameSpan.style.fontWeight = 'bold';
 
-        // Get effect data
         const effectData = filterEffectPowerList[index] != null ? filterEffectPowerList[index] : 'N/A';
 
-        // Get filter data (ensure valid return)
         const text = getFilterData(filter.toLowerCase(), effectData) || 'N/A';
 
-        console.log("Filter:", filter); // Debugging: log filter name
-        console.log("Effect Data:", effectData); // Debugging: log effect data
-        console.log("Text:", text); // Debugging: log the result from getFilterData
+        console.log("Filter:", filter);
+        console.log("Effect Data:", effectData);
+        console.log("Text:", text);
 
         const effectSpan = document.createElement('span');
 
         if (text.startsWith('#')) {
-            // Create a canvas to display the hex color
             const canvas = document.createElement('canvas');
             canvas.width = 20;
             canvas.height = 20;
@@ -1564,11 +1566,6 @@ function renderFilterList() {
         filterListElement.appendChild(li);
     });
 }
-
-
-
-
-
 const tools = {
     colors: function(len=255,opt=0) {
         colors = [];
@@ -1592,6 +1589,6 @@ const tools = {
         return colorParts.join('');
     },
     filters: function() {
-        console.log(`${filterList} ; ${JSON.stringify(filterEffectPowerList)}`)
+        console.log('' + JSON.stringify(filterList) + ' ; ' + JSON.stringify(filterEffectPowerList))
     }
 }
