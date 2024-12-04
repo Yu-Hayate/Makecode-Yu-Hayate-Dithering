@@ -354,7 +354,8 @@ function applyFilter(context,w,h) {
                 const radius = Math.min(Math.abs(filterEffectPowerList[i][0]),15);
                 medianFilter(context,w,h, 1);
             } else if (filterList[i] == 'Brighten') {
-                brightenFilter(context,w,h,1.2)
+                const brightenStrength = Math.max(Math.abs(filterEffectPowerList[i][0]),0.10)
+                brightenFilter(context,w,h,)
             }
         }
     } else {
@@ -380,13 +381,12 @@ function applyFilter(context,w,h) {
             const radius = Math.min(Math.abs(document.getElementById('radius').value),15);
             medianFilter(context,w,h, radius);
         } else if (filterType == 'Brighten') {
-            brightenFilter(context,w,h,1.2)
+            const brightenStrength = Math.max(Math.abs(document.getElementById('Slider')),0.10)
+            brightenFilter(context,w,h,brightenStrength)
         }
     }
 }
-function getPerceivedBrightness(r, g, b) {
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
+
 function brightenFilter(context, width, height, brightnessFactor) {
     // Get the image data from the canvas
     const imageData = context.getImageData(0, 0, width, height);
@@ -399,14 +399,11 @@ function brightenFilter(context, width, height, brightnessFactor) {
         let g = data[i + 1]; // Green
         let b = data[i + 2]; // Blue
 
-        // Calculate the perceived brightness of the pixel
-        let brightness = getPerceivedBrightness(r, g, b);
-
         // Apply the brightness factor to the perceived brightness
         // Increase the brightness proportionally, but don't exceed the max value (255)
-        r = Math.min(255, r + (brightness * brightnessFactor));
-        g = Math.min(255, g + (brightness * brightnessFactor));
-        b = Math.min(255, b + (brightness * brightnessFactor));
+        r = Math.min(255, r * brightnessFactor);
+        g = Math.min(255, g * brightnessFactor);
+        b = Math.min(255, b * brightnessFactor);
 
         // Set the new values to the image data
         data[i] = r;
@@ -1406,47 +1403,60 @@ function hexToRgb(hexArray) {
     });
 }
 function rgbToHex(rgbArray) {
-    return rgbArray.map(rgb => {
-        return '#' + rgb.map(component => {
-            const hex = component.toString(16);
-            return hex.length === 1 ? '0' + hex : hex;
-        }).join('');
-    });
+    if (!Array.isArray(rgbArray) || rgbArray.length !== 3) {
+        throw new Error('Input must be an array of three strings representing RGB values.');
+    }
+
+    return '#' + rgbArray.map(value => {
+        const number = parseInt(value, 10); // Convert string to number
+        if (isNaN(number) || number < 0 || number > 255) {
+            throw new Error(`Invalid RGB component: ${value}. Must be a number between 0 and 255.`);
+        }
+        const hex = number.toString(16).toUpperCase(); // Convert to hexadecimal
+        return hex.length === 1 ? '0' + hex : hex; // Add leading zero if needed
+    }).join('');
 }
+
+
 function arrayEquals(arr1, arr2) {
     return JSON.stringify(arr1) === JSON.stringify(arr2);
 }
 function addFilter() {
-    let data;
-    const filter = document.getElementById('Filters').value
-    if (filter != 'none') {
-        filterList.push(filter)
-        if (filter == 'custom') {
-            const r = document.getElementById('red').value!==''?document.getElementById('red').value:"255";
-            const g = document.getElementById('green').value!==''?document.getElementById('green').value:"255";
-            const b = document.getElementById('blue').value!==''?document.getElementById('blue').value:"255";
-            data = [r,g,b];
-        } else if (filter == 'noise') {
-            const noiseLevel = document.getElementById('noiseLevel').value!==''?document.getElementById('noiseLevel').value:15;
-            data = [noiseLevel];
-        } else if (filter == 'blur') {
-            const blurPower = Math.floor(Math.min(Math.abs(document.getElementById('blurPower').value),50));
-            data = [blurPower>0?blurPower:2];
-        } else if (filter == 'median') {
-            const radius = Math.floor(Math.min(Math.abs(document.getElementById('blurPower').value),10));
-            data = [radius>0?radius:2]
-        } else if (filter == 'Brighten') {
-            const slider = document.getElementById('Slider').value // number from 0 to 2
-            data = [slider]
-        } else {
-            data = [];
+    if (filterList.length < 15) {
+        let data;
+        const filter = document.getElementById('Filters').value
+        if (filter != 'none') {
+            filterList.push(filter)
+            if (filter == 'custom') {
+                const r = document.getElementById('red').value!==''?document.getElementById('red').value:"255";
+                const g = document.getElementById('green').value!==''?document.getElementById('green').value:"255";
+                const b = document.getElementById('blue').value!==''?document.getElementById('blue').value:"255";
+                data = [r,g,b];
+            } else if (filter == 'noise') {
+                const noiseLevel = document.getElementById('noiseLevel').value!==''?document.getElementById('noiseLevel').value:15;
+                data = [noiseLevel];
+            } else if (filter == 'blur') {
+                const blurPower = Math.floor(Math.min(Math.abs(document.getElementById('blurPower').value),50));
+                data = [blurPower>0?blurPower:2];
+            } else if (filter == 'median') {
+                const radius = Math.floor(Math.min(Math.abs(document.getElementById('blurPower').value),10));
+                data = [radius>0?radius:2]
+            } else if (filter == 'Brighten') {
+                const slider = document.getElementById('Slider').value // number from 0 to 2
+                data = [slider]
+            } else {
+                data = [];
+            }
+            filterEffectPowerList.push(data)
         }
-        filterEffectPowerList.push(data)
+        renderFilterList()
+    } else {
+        alert('cannot add more then 15 filters')
     }
-    renderFilterList()
     
 }
 function getFilterData(filter,effect) {
+    console.log(effect)
     switch (filter) {
         case 'custom':
             return '' +rgbToHex(effect)
@@ -1482,90 +1492,106 @@ function moveDown(index) {
 }
 function renderFilterList() {
     const filterListElement = document.getElementById('FiltersList');
+
+    // Ensure FiltersList exists in the DOM
+    if (!filterListElement) {
+        console.error('Element with id "FiltersList" not found.');
+        return;
+    }
+
     filterListElement.innerHTML = '';
 
+    // Ensure filterList and filterEffectPowerList are arrays
+    if (!Array.isArray(filterList) || !Array.isArray(filterEffectPowerList)) {
+        console.error('filterList and filterEffectPowerList must be arrays.');
+        return;
+    }
+
     filterList.forEach((filter, index) => {
-        filter = filter.toUpperCase()==='UNBLUR'?'SHARPEN':filter
+        // Ensure filter exists
+        if (typeof filter !== 'string') {
+            console.warn(`Invalid filter at index ${index}:`, filter);
+            return;
+        }
+
+        filter = filter.toUpperCase() === 'UNBLUR' ? 'SHARPEN' : filter;
+
         const li = document.createElement('li');
         li.style.position = 'relative';
         li.style.marginBottom = '5px';
+        li.style.display = 'flex';
+        li.style.alignItems = 'center'; // Ensure alignment with canvas
 
         const filterNameSpan = document.createElement('span');
         filterNameSpan.textContent = filter.toUpperCase();
         filterNameSpan.style.marginRight = '10px';
         filterNameSpan.style.color = '#fff';
         filterNameSpan.style.fontWeight = 'bold';
-
-        const effectData = filterEffectPowerList[index] != null ? filterEffectPowerList[index] : 'N/A';
-
-        const text = getFilterData(filter.toLowerCase(), effectData) || 'N/A';
-
-        console.log("Filter:", filter);
-        console.log("Effect Data:", effectData);
-        console.log("Text:", text);
+        li.appendChild(filterNameSpan)
+        const effectData = filterEffectPowerList[index] || 'N/A';
+        const text = getFilterData?.(filter.toLowerCase(), effectData) || 'N/A';
 
         const effectSpan = document.createElement('span');
 
+        // Create a canvas if the text is a color code
         if (text.startsWith('#')) {
             const canvas = document.createElement('canvas');
-            canvas.width = 20;
+            canvas.width = 80;
             canvas.height = 20;
-            canvas.style.marginRight = '10px';
-
+            canvas.style.marginRight = '-70px';
+            canvas.style.borderRadius = '5px';
+            canvas.style.zIndex = '-1';  // Ensure canvas is behind the text
+        
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = text;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Add canvas to list item
+            if (ctx) {
+                ctx.fillStyle = text;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else {
+                console.warn('Failed to get canvas context for:', text);
+            }
+        
             li.appendChild(canvas);
-
-            // Add the effectSpan
+        
             effectSpan.textContent = text;
             effectSpan.style.marginRight = '10px';
-            effectSpan.style.color = getTextColor(text); // Ensure getTextColor returns a readable color
+            effectSpan.style.color = getTextColor?.(text) || '#000';
             effectSpan.style.fontStyle = 'italic';
-            li.appendChild(effectSpan);
+            effectSpan.style.position = 'relative';  // Ensure the text is on top (relative positioning)
+            effectSpan.style.zIndex = '1';  // Ensure text is above the canvas       
         } else {
             effectSpan.textContent = text;
             effectSpan.style.marginRight = '10px';
             effectSpan.style.color = '#ccc';
             effectSpan.style.fontStyle = 'italic';
-
-            // Append the effectSpan to the list item
-            li.appendChild(effectSpan);
         }
+
+        li.appendChild(effectSpan);
 
         // Remove button
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
-        removeBtn.addEventListener('click', () => removeFilter(index));
+        removeBtn.addEventListener('click', () => removeFilter?.(index));
+        li.appendChild(removeBtn);
 
         // Move up button
         const moveFilterUpBtn = document.createElement('button');
         moveFilterUpBtn.textContent = '\u2191'; // Up arrow
-        moveFilterUpBtn.addEventListener('click', () => moveUp(index));
-        if (index === 0) {
-            moveFilterUpBtn.style.display = 'none';
-        }
+        moveFilterUpBtn.addEventListener('click', () => moveUp?.(index));
+        if (index === 0) moveFilterUpBtn.style.display = 'none';
+        li.appendChild(moveFilterUpBtn);
 
         // Move down button
         const moveFilterDownBtn = document.createElement('button');
         moveFilterDownBtn.textContent = '\u2193'; // Down arrow
-        moveFilterDownBtn.addEventListener('click', () => moveDown(index));
-        if (index === filterList.length - 1) {
-            moveFilterDownBtn.style.display = 'none';
-        }
-
-        // Append elements to the list item
-        li.appendChild(filterNameSpan);
-        li.appendChild(removeBtn);
-        li.appendChild(moveFilterUpBtn);
+        moveFilterDownBtn.addEventListener('click', () => moveDown?.(index));
+        if (index === filterList.length - 1) moveFilterDownBtn.style.display = 'none';
         li.appendChild(moveFilterDownBtn);
 
         // Append the list item to the filter list
         filterListElement.appendChild(li);
     });
 }
+
 const tools = {
     colors: function(len=255,opt=0) {
         colors = [];
