@@ -1,46 +1,65 @@
-[website here](https://yu-hayate.github.io/Makecode-Yu-Hayate-Dithering/)
+# MakeCode Dithering
 
-### Uses?
-* you can use this to convert that only contains a set color palette
-* or you can use it to add filters to your images
-* you can use it to convert makecode image types into png files (Dont forget that the size setting WILL change the converted Images size)
+## What Is It For?
+This tool offers powerful image manipulation functionalities, particularly for users working with MakeCode Arcade. With it, you can:  
+- Convert images to use a specific color palette.  
+- Apply filters to customize the appearance of your images.  
+- Convert MakeCode Arcade image formats into PNG files. *(Note: Adjusting the size setting will resize the converted image.)*
 
-### Functionalities?
-#### Dithering
-* floyd-Steinberg Dithering
-* False Floyd-Steinberg Dithering
-* Stucki Dithering
-* Burkes Dithering
-* Nearest Color
-* 2x2 brayer Matrix (wip)
-* 4x4 brayer Matrix (wip)
-* 8x8 brayer Matrix (wip)
-* 16x16 brayer Matrix (wip)
-* theres also the `none` option for those who only want to resize or add filters to the image
---------
-#### Filters options
-* none
-* Grayscale
-* Custom
-* Noise
-* Blur
-* Invert
-* unblur
-* median
---------
-#### Color palette
-you start with the default makcode arcade color palette 
+---
 
-you can change,remove,add colors 
+## Image Settings
+- **Resize Images:** Control the size of your image effortlessly.  
+- **Re-dither Images:** Use the **Apply Changes** button to reapply dithering or resize adjustments.
 
-you can also move colors up and down from the array
+---
 
-whats the use of being able to move colors in the array?
+## Functionalities
 
-well its just to match makecode arcades custom color palette they have the move up and down buttons so i added that too 
+### Dithering Options
+Choose from several dithering algorithms to optimize your images:
+- Floyd-Steinberg Dithering  
+- False Floyd-Steinberg Dithering  
+- Stucki Dithering  
+- Burkes Dithering  
+- Nearest Color  
+- 2x2 Bayer Matrix  
+- 4x4 Bayer Matrix  
+- 8x8 Bayer Matrix  
+- 16x16 Bayer Matrix  
+- **None**: For resizing or applying filters without dithering.
 
-you can also 
-* Save Color Palettes
-* remove Saved Color Palettes
-* Load Your Saved Color Palettes
---------
+---
+
+### Filter Options
+Apply these filters to your images:
+- None  
+- Sharpen  
+- Brighten  
+- Blur  
+- Grayscale  
+- Noise  
+- Invert  
+- Custom  
+- Median (DeNoiser)
+
+---
+
+### Color Palette
+Start with the default MakeCode Arcade color palette and customize it as needed:
+- **Add, Remove, or Change Colors**: Modify the palette to suit your project.  
+- **Move Colors Up and Down**: Match the palette order used in MakeCode Arcade, with convenient move buttons.  
+- **Save and Load Palettes**:  
+  - Save your custom palettes for later use.  
+  - Remove palettes you no longer need.  
+  - Load saved palettes seamlessly.
+
+---
+
+### Variables and Conversion
+- **Variable Name:** Define the variable name when copying the image for MakeCode Arcade.  
+- **Copy Image for MakeCode Arcade:** Copy the MakeCode-compatible version of the image to your clipboard.  
+- **Convert MakeCode Image into PNG:** Copy a MakeCode image from the editor, paste it here, and convert it into a PNG file.
+
+---
+[Website Link](https://yu-hayate.github.io/Makecode-Yu-Hayate-Dithering/)
