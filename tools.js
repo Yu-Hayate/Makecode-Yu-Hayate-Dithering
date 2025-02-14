@@ -4,19 +4,16 @@ function extractHexColors(str, prefix = "#") {
 }
 
 const tools = {
-    colors: [],
-    enabledColorsList: [],
-    
     generateColors: function(len = 255, opt = 0) {
-        this.colors = ["#ffffff", "#000000"];
-        this.enabledColorsList = [true, true];
+        colors = ["#ffffff", "#000000"];
+        enabledColorsList = [true, true];
 
         for (let i = 2; i < len; i++) {
             let randomColor = this.getRandomColor(opt);
-            this.colors.push(randomColor);
-            this.enabledColorsList.push(true);
+            colors.push(randomColor);
+            enabledColorsList.push(true);
         }
-        this.renderColors();
+        renderColors();
     },
 
     getRandomColor: function(opt = 0) {
@@ -37,8 +34,8 @@ const tools = {
     },
 
     setColors: function(s) {
-        this.colors = extractHexColors(s);
-        this.enabledColorsList = new Array(this.colors.length).fill(true);
+        colors = extractHexColors(s);
+        enabledColorsList = new Array(colors.length).fill(true);
     },
 };
 
