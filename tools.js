@@ -36,6 +36,7 @@ const tools = {
     setColors: function(s) {
         colors = extractHexColors(s);
         enabledColorsList = new Array(colors.length).fill(true);
+        renderColors();
     },
 };
 
