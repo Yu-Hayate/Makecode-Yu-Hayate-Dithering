@@ -1591,30 +1591,3 @@ function renderFilterList() {
         filterListElement.appendChild(li);
     });
 }
-
-const tools = {
-    colors: function(len=255,opt=0) {
-        colors = [];
-        enabledColorsList = [];
-        colors.push('#ffffff')
-        colors.push('#000000')
-        enabledColorsList.push(true)
-        enabledColorsList.push(true)
-        for (let i = 0; i < len-1; i++) {
-                let randomColor = this.getRandomColor(opt);
-                colors.push(randomColor);
-                enabledColorsList.push(true);
-        }
-        renderColors()
-    },
-    getRandomColor: function(opt=0) {
-        let colorParts = ['#']
-        let g=Math.floor(Math.random()*16).toString(16)
-        if(opt===0){for(let j=0;j<6;j++)colorParts.push(Math.floor(Math.random()*16).toString(16))
-        } else if (opt===1) for(let j=0;j<6;j++)colorParts.push(g)
-        return colorParts.join('');
-    },
-    filters: function() {
-        console.log('' + JSON.stringify(filterList) + ' ; ' + JSON.stringify(filterEffectPowerList))
-    }
-}
